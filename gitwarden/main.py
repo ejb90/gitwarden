@@ -147,4 +147,35 @@ def clone(group: str, directory: click.Path) -> None:
 
 @main.command()
 def branch():
-    """Branch repos recursively."""
+    """Branch repos recursively.
+    
+    Arguments:
+        ...
+    
+    Returns:
+        ...
+    """
+
+
+@main.command()
+def checkout():
+    """Checkout repos recursively.
+    
+    Arguments:
+        ...
+    
+    Returns:
+        ...
+    """
+
+
+@main.command()
+def pull():
+    """Pull repos recursively.
+    
+    Arguments:
+        ...
+    
+    Returns:
+        ...
+    """
