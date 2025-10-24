@@ -1,0 +1,23 @@
+[project]
+name = "gitwarden"
+version = "0.1.0"
+description = "Manage multiple git repositories seemlessly(ish)."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "click",
+    "gitpython",
+    "python-gitlab",
+    "rich",
+    "rich-argparse",
+]
+
+[project.scripts]
+gitwarden = "gitwarden.main:main"
+
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
