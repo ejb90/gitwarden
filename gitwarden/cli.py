@@ -34,7 +34,9 @@ def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str):
 )
 @click.option("--flat", type=bool, default=False, required=False)
 @click.pass_context
-def clone(ctx: click.Context, group: str, directory: pathlib.Path | None, flat: bool) -> None:
+def clone(
+    ctx: click.Context, group: str, directory: pathlib.Path | None, flat: bool
+) -> None:
     """Clone repos recursively.
 
     Arguments:
@@ -47,8 +49,8 @@ def clone(ctx: click.Context, group: str, directory: pathlib.Path | None, flat: 
     """
 
     group = gitlab.GitlabGroup(
-        gitlab_url=ctx.obj["url"], 
-        gitlab_key=ctx.obj["key"], 
+        gitlab_url=ctx.obj["url"],
+        gitlab_key=ctx.obj["key"],
         gitlab_group=group,
         flat=flat,
     )

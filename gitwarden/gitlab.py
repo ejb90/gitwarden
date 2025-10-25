@@ -10,9 +10,6 @@ import gitlab
 from pydantic import BaseModel, Field
 
 
-from icecream import ic
-
-
 class GitlabGroup(BaseModel):
     """A Gitlab Group convenience class.
 
@@ -43,29 +40,27 @@ class GitlabGroup(BaseModel):
             if self.flat:
                 proj.path = self.path / project.path
             else:
-                proj.path = self.path / project.path.replace(self.path.name+"-", "")            
+                proj.path = self.path / project.path.replace(self.path.name + "-", "")
             self.projects.append(proj)
-        for group in self.group.subgroups.list(all=True): 
+        for group in self.group.subgroups.list(all=True):
             grp = GitlabGroup(
                 gitlab_url=self.gitlab_url,
                 gitlab_key=self.gitlab_key,
                 gitlab_group=group.full_path,
                 path=self.path if self.flat else self.path / group.path,
                 flat=self.flat,
-                )
+            )
             self.subgroups.append(grp)
-        
+
     @property
     def count(self) -> int:
         """How many repositories are in the full group structure?"""
-        count = 0
-        for project in self.projects:
-            count += 1
+        count = len(self.projects)
         for subgroup in self.subgroups:
             count += subgroup.count
         return count
 
-    def recursive_command(self, command, **kwargs):
+    def recursive_command(self, command: str, **kwargs) -> None:
         """Recursively walk down group tree, finding projects and executing commands."""
         for project in self.projects:
             if hasattr(project, command):
@@ -79,6 +74,7 @@ class GitlabGroup(BaseModel):
 
 class GitlabProject(BaseModel):
     """A Gitlab Project convenience class."""
+
     project: typing.Any
     path: pathlib.Path | None = None
     git: typing.Any | None = None
@@ -91,9 +87,7 @@ class GitlabProject(BaseModel):
     def build_local_repo(self):
         """Clone/check local repo."""
         if not self.path.is_dir():
-            self.git = git.Repo.clone_from(
-                self.project.ssh_url_to_repo, self.path
-            )
+            self.git = git.Repo.clone_from(self.project.ssh_url_to_repo, self.path)
         else:
             self.git = git.Repo(self.path)
 
