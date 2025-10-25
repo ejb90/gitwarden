@@ -29,23 +29,72 @@ See:
 * [gitman](https://gitman.readthedocs.io/en/latest/)
 git 
 """
+
+from __future__ import annotations
 import os
 import pathlib
+import pickle
+import typing
 
-import click
 import git
 import gitlab
+from pydantic import BaseModel, Field
+import rich
+import rich.console
+import rich.layout
+import rich.progress
+import rich_click as click
 
 
-class GitlabGroup:
+
+class GitlabGroup(BaseModel):
     """A Gitlab Group convenience class."""
-    def __init__(self, gitlab_group):
-        self.gitlab_group = gitlab_group
-        self.projects = []
-        self.subgroups = []
+    gitlab_group: typing.Any
+    path: pathlib.Path = pathlib.Path().resolve()
+    cfg: pathlib.Path = pathlib.Path().resolve() / ".gitwarden/gitwarden.pkl"
+    projects: list[str] = Field(default_factory=list)
+    subgroups: list[str] = Field(default_factory=list)
 
+    def model_post_init(self, __context=None) -> None:
+        """Post-init function calls."""
+        if self.cfg.is_file():
+            self.load(self.cfg)
         self.build_projects()
+        self.save()
 
+    def save(self) -> None:
+        """Serialize the model to a JSON file."""
+        if not self.cfg.parent.is_dir():
+            self.cfg.parent.mkdir()
+        with open(self.cfg, "wb") as f:
+            pickle.dump(self, f)
+
+    @classmethod
+    def load(cls, cfg: pathlib.Path) -> GitlabGroup:
+        with open(cfg, "rb") as fobj:
+            obj = pickle.load(fobj)
+        return obj
+    
+    @property
+    def count(self) -> int:
+        """"""
+        count = 0
+        for project in self.projects:
+            count += 1
+        for subgroup in self.subgroups:
+            count += subgroup.count
+        return count
+    
+    def _rich_progress_bar(self, function_name: str):
+        """"""
+        self.task = rich.progress.Progress.add_task(description=function_name, total=self.count)
+
+    def _rich_table(self, function_name: str, columns: list[str]):
+        """"""
+        self.table = rich.table.Table(title=function_name)
+        for column in columns:
+            self.table.add_colum(column)
+    
     def build_projects(self) -> None:
         """Build each project object."""
         for project in self.gitlab_group.projects.list(all=True):
@@ -53,20 +102,30 @@ class GitlabGroup:
         for group in self.gitlab_group.subgroups.list(all=True):
             self.subgroups.append(GitlabGroup(project))
 
-    # def recursive_command(self, command):
-    #     """Recursively walk down group tree, finding projects and executing commands."""
-    #     for project in self.projects:
-    #         if hasattr(project, command):
-    #             project.getattr(command)()
-        
-    #     for subgroup in self.subgroups:
-    #         subgroup.recursive_command()
-    
-    def clone(self, directory: pathlib.Path) -> None:
-        """"""
-        for entry in (self.projects + self.subgroups):
-            entry.clone(directory)
+    def recursive_command(self, command, **kwargs):
+        """Recursively walk down group tree, finding projects and executing commands."""
+        console = rich.console.Console()
+        layout = rich.layout.Layout()
+        layout.split(
+            rich.layout.Layout(name="top", ratio=3),
+            rich.layout.Layout(name="bottom", ratio=1),
+        )
+        self._rich_progress_bar(command)
+        self._rich_table(command)
 
+        for project in self.projects:
+            if hasattr(project, command):
+                getattr(project, command)(**kwargs)
+        
+        for subgroup in self.subgroups:
+            subgroup.recursive_command()
+
+        console.print(self.table)
+    
+    # def clone(self, directory: pathlib.Path) -> None:
+    #     """"""
+    #     for entry in (self.projects + self.subgroups):
+    #         entry.clone(directory)
 
 
 class GitlabProject:
@@ -79,19 +138,19 @@ class GitlabProject:
     def build_local_repo(self):
         """Clone/check local repo."""
         if not self.path.is_dir():
-            self.git = git.Repo.clone_from(self.gitlab_project.ssh_url_to_repo, self.gitlab_project.path)
+            self.git = git.Repo.clone_from(self.gitlab_project.ssh_url_to_repo, self.path)
         else:
             self.git = git.Repo(self.path)
     
-    def clone(self, directory):
+    def clone(self, directory=None):
         """"""
-        self.path = directory
+        if directory is not None:
+            self.path = directory
         self.build_local_repo()
 
     def branch(self):
         """"""
 
-    
 
 def get_gitlab_group(
         group: str, 
@@ -106,17 +165,13 @@ def get_gitlab_group(
     Returns:
         ...
     """
+
     gtlb = gitlab.Gitlab(
         url,
         private_token=key
     )
     group = gtlb.groups.get(group)
-
-    # # Now store metadata like git
-    # config_dir = pathlib.Path(".gitwarden")
-    # if not config_dir.is_dir():
-        
-    return GitlabGroup(group)
+    return GitlabGroup(gitlab_group=group)
 
 
 @click.group()
@@ -129,20 +184,23 @@ def main():
 @click.argument("group")
 @click.argument(
     "directory", 
-    type=pathlib.Path,
-    default=pathlib.Path(),
+    type=click.Path(path_type=pathlib.Path),
+    default=None,
+    required=False,
 )
-def clone(group: str, directory: click.Path) -> None:
+def clone(group: str, directory: pathlib.Path | None) -> None:
     """Clone repos recursively.
     
     Arguments:
-        ...
+        group (str):                        Name of the Gitlab group to recursively clone.
+        directory (pathlib.Path, None):     Directory in which to clone repositories.
     
     Returns:
-        ...
+        None
     """
     group = get_gitlab_group(group)
-    group.clone(pathlib.Path(directory))
+    # group.clone(directory)
+    group.recursive_command("clone", directory=directory)
 
 
 @main.command()
@@ -153,7 +211,7 @@ def branch():
         ...
     
     Returns:
-        ...
+        None
     """
 
 
