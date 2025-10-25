@@ -45,7 +45,6 @@ class GitlabGroup(BaseModel):
             else:
                 proj.path = self.path / project.path.replace(self.path.name+"-", "")            
             self.projects.append(proj)
-            print(proj.path)
         for group in self.group.subgroups.list(all=True): 
             grp = GitlabGroup(
                 gitlab_url=self.gitlab_url,
@@ -56,8 +55,6 @@ class GitlabGroup(BaseModel):
                 )
             self.subgroups.append(grp)
         
-        exit()
-
     @property
     def count(self) -> int:
         """How many repositories are in the full group structure?"""
