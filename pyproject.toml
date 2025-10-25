@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-gitwarden = "gitwarden.main:main"
+gitwarden = "gitwarden.cli:cli"
 
 [build-system]
 requires = ["setuptools>=64", "wheel"]

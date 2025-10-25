@@ -46,13 +46,13 @@ import rich.progress
 import rich_click as click
 
 
-
 class GitlabGroup(BaseModel):
     """A Gitlab Group convenience class.
 
     Attributes:
         ...
     """
+
     gitlab_group: typing.Any
     gitlab_server: typing.Any
     path: pathlib.Path = pathlib.Path().resolve()
@@ -63,7 +63,6 @@ class GitlabGroup(BaseModel):
 
     _progress: typing.Any = None
     _table: typing.Any = None
-
 
     def model_post_init(self, __context=None) -> None:
         """Post-init function calls."""
@@ -101,7 +100,9 @@ class GitlabGroup(BaseModel):
         self._progress = rich.progress.Progress()
         self._progress.add_task(description=description, total=self.count)
 
-    def _rich_table(self, title: str, columns: list[str]=["Name", "Group", "Describe", "Remote"]):
+    def _rich_table(
+        self, title: str, columns: list[str] = ["Name", "Group", "Describe", "Remote"]
+    ):
         """"""
         self._table = rich.table.Table(title=title)
         for column in columns:
@@ -140,8 +141,6 @@ class GitlabGroup(BaseModel):
         if not self.subgroup:
             self._console.print(self._table)
 
-
-
         #     self._rich_progress_bar(command)
         #     self._rich_table(command)
         # console.print(self.table)
@@ -154,6 +153,7 @@ class GitlabGroup(BaseModel):
 
 class GitlabProject:
     """A Gitlab Project convenience class."""
+
     def __init__(self, gitlab_project):
         self.gitlab_project = gitlab_project
         self.path = pathlib.Path() / self.gitlab_project.path
@@ -162,7 +162,9 @@ class GitlabProject:
     def build_local_repo(self):
         """Clone/check local repo."""
         if not self.path.is_dir():
-            self.git = git.Repo.clone_from(self.gitlab_project.ssh_url_to_repo, self.path)
+            self.git = git.Repo.clone_from(
+                self.gitlab_project.ssh_url_to_repo, self.path
+            )
         else:
             self.git = git.Repo(self.path)
 
@@ -183,10 +185,10 @@ class GitlabProject:
 
 
 def get_gitlab_group(
-        group: str,
-        url: str="https://gitlab.com",
-        key: str=os.environ.get("GITLAB_PRIVATE_KEY")
-    ) -> GitlabGroup:
+    group: str,
+    url: str = "https://gitlab.com",
+    key: str = os.environ.get("GITLAB_PRIVATE_KEY"),
+) -> GitlabGroup:
     """Get GitlabGroup object.
 
     Arguments:
@@ -196,10 +198,7 @@ def get_gitlab_group(
         ...
     """
 
-    gitlab_server = gitlab.Gitlab(
-        url,
-        private_token=key
-    )
+    gitlab_server = gitlab.Gitlab(url, private_token=key)
     group = gitlab_server.groups.get(group)
     return GitlabGroup(gitlab_group=group, gitlab_server=gitlab_server)
 
