@@ -10,6 +10,9 @@ import gitlab
 from pydantic import BaseModel, Field
 
 
+from icecream import ic
+
+
 class GitlabGroup(BaseModel):
     """A Gitlab Group convenience class.
 
@@ -19,11 +22,11 @@ class GitlabGroup(BaseModel):
 
     gitlab_group: str
     gitlab_url: str = "https://gitlab.com"
-    gitlab_key: str = os.environ.get("", "GITLAB_PRIVATE_KEY")
+    gitlab_key: str = os.environ.get("GITLAB_PRIVATE_KEY", "")
     server: typing.Any | None = None
     group: typing.Any | None = None
     path: pathlib.Path = pathlib.Path().resolve()
-    cfg: pathlib.Path = pathlib.Path().resolve() / ".gitwarden/gitwarden.pkl"
+    flat: bool = True
     projects: list[str] = Field(default_factory=list)
     subgroups: list[str] = Field(default_factory=list)
 
@@ -35,16 +38,25 @@ class GitlabGroup(BaseModel):
 
     def build(self) -> None:
         """Build each project object."""
-        for project in self.group.projects.list(all=True):
-            self.projects.append(GitlabProject(project=project))
-        for group in self.group.subgroups.list(all=True):
-            self.subgroups.append(
-                GitlabGroup(
-                    gitlab_url=self.gitlab_url,
-                    gitlab_key=self.gitlab_key,
-                    gitlab_group=group.full_path,
+        for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
+            proj = GitlabProject(project=project)
+            if self.flat:
+                proj.path = self.path / project.path
+            else:
+                proj.path = self.path / project.path.replace(self.path.name+"-", "")            
+            self.projects.append(proj)
+            print(proj.path)
+        for group in self.group.subgroups.list(all=True): 
+            grp = GitlabGroup(
+                gitlab_url=self.gitlab_url,
+                gitlab_key=self.gitlab_key,
+                gitlab_group=group.full_path,
+                path=self.path if self.flat else self.path / group.path,
+                flat=self.flat,
                 )
-            )
+            self.subgroups.append(grp)
+        
+        exit()
 
     @property
     def count(self) -> int:
@@ -68,13 +80,16 @@ class GitlabGroup(BaseModel):
             subgroup.recursive_command(command)
 
 
-class GitlabProject:
+class GitlabProject(BaseModel):
     """A Gitlab Project convenience class."""
+    project: typing.Any
+    path: pathlib.Path | None = None
+    git: typing.Any | None = None
 
-    def __init__(self, project):
-        self.project = project
-        self.path = pathlib.Path() / self.project.path
-        self.git = None
+    def model_post_init(self, __context=None) -> None:
+        """Post-init function calls."""
+        if self.path is None:
+            self.path = pathlib.Path() / self.project.path
 
     def build_local_repo(self):
         """Clone/check local repo."""
@@ -85,14 +100,12 @@ class GitlabProject:
         else:
             self.git = git.Repo(self.path)
 
-    def clone(self, directory=None):
+    def clone(self):
         """"""
-        if directory is not None:
-            self.path = directory
         self.build_local_repo()
-        return [
-            pathlib.Path(self.git.working_tree_dir).name,
-            "",
-            self.git.git.rev_parse("--abbrev-ref", "HEAD"),
-            self.git.remote(name="origin").url,
-        ]
+        # return [
+        #     pathlib.Path(self.git.working_tree_dir).name,
+        #     "",
+        #     self.git.git.rev_parse("--abbrev-ref", "HEAD"),
+        #     self.git.remote(name="origin").url,
+        # ]
