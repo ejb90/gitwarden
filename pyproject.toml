@@ -7,9 +7,10 @@ requires-python = ">=3.13"
 dependencies = [
     "click",
     "gitpython",
+    "pydantic",
     "python-gitlab",
     "rich",
-    "rich-argparse",
+    "rich-click",
 ]
 
 [project.scripts]
