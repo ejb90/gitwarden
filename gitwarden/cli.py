@@ -56,4 +56,4 @@ def clone(
     )
     if directory is not None:
         group.path = directory
-    # group.recursive_command("clone")
+    group.recursive_command("clone")

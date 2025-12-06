@@ -8,6 +8,25 @@ import typing
 import git
 import gitlab
 from pydantic import BaseModel, Field
+import rich
+import rich.console
+import rich.live
+import rich.progress
+import rich.table
+
+
+
+PROGRESS = rich.progress.Progress(
+    # rich.progress.TextColumn("[bold blue]{task.fields[filename]}[/]"),
+    rich.progress.BarColumn(),
+    rich.progress.MofNCompleteColumn(),
+)
+TASK = PROGRESS.add_task(description="Processing", total=0)
+TABLE = rich.table.Table()
+[TABLE.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
+CONSOLE = rich.console.Console()
+LIVE = rich.live.Live(console=CONSOLE, refresh_per_second=10)
+LIVE.start()
 
 
 class GitlabGroup(BaseModel):
@@ -26,6 +45,7 @@ class GitlabGroup(BaseModel):
     flat: bool = True
     projects: list[str] = Field(default_factory=list)
     subgroups: list[str] = Field(default_factory=list)
+    subgroup: bool = False
 
     def model_post_init(self, __context=None) -> None:
         """Post-init function calls."""
@@ -49,6 +69,7 @@ class GitlabGroup(BaseModel):
                 gitlab_group=group.full_path,
                 path=self.path if self.flat else self.path / group.path,
                 flat=self.flat,
+                subgroup=True,
             )
             self.subgroups.append(grp)
 
@@ -62,14 +83,35 @@ class GitlabGroup(BaseModel):
 
     def recursive_command(self, command: str, **kwargs) -> None:
         """Recursively walk down group tree, finding projects and executing commands."""
+        # self._rich_progress_bar(command)
+        # self._rich_table(command)
+        if not self.subgroup:
+            PROGRESS.update(TASK, total=self.count)
+        
         for project in self.projects:
             if hasattr(project, command):
                 getattr(project, command)(**kwargs)
+                TABLE.add_row(*project.row)
+                PROGRESS.advance(TASK)
             else:
                 raise Exception(f'Command "{command}" not recognised.')
+            LIVE.update(rich.console.Group(TABLE, PROGRESS))
 
         for subgroup in self.subgroups:
-            subgroup.recursive_command(command)
+            subgroup.recursive_command(command)                
+
+    # def _rich_progress_bar(self, description: str):
+    #     """"""
+    #     self._progress = rich.progress.Progress()
+    #     self._progress.add_task(description=description, total=self.count)
+
+    # def _rich_table(
+    #     self, title: str, columns: list[str] = ["Name", "Group", "Describe", "Remote"]
+    # ):
+    #     """"""
+    #     self._table = rich.table.Table(title=title)
+    #     for column in columns:
+    #         self._table.add_column(column)
 
 
 class GitlabProject(BaseModel):
@@ -78,6 +120,7 @@ class GitlabProject(BaseModel):
     project: typing.Any
     path: pathlib.Path | None = None
     git: typing.Any | None = None
+    row: str = ""
 
     def model_post_init(self, __context=None) -> None:
         """Post-init function calls."""
@@ -94,9 +137,10 @@ class GitlabProject(BaseModel):
     def clone(self):
         """"""
         self.build_local_repo()
-        # return [
-        #     pathlib.Path(self.git.working_tree_dir).name,
-        #     "",
-        #     self.git.git.rev_parse("--abbrev-ref", "HEAD"),
-        #     self.git.remote(name="origin").url,
-        # ]
+        self.row = [
+            pathlib.Path(self.git.working_tree_dir).name,
+            self.project.path_with_namespace,
+            self.git.git.rev_parse("--abbrev-ref", "HEAD"),
+            str(self.path),
+            self.git.remote(name="origin").url,
+        ]
