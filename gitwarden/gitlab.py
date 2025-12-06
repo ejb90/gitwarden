@@ -89,10 +89,13 @@ class GitlabGroup(BaseModel):
             PROGRESS.update(TASK, total=self.count)
         
         for project in self.projects:
+            print(project)
             if hasattr(project, command):
-                getattr(project, command)(**kwargs)
                 TABLE.add_row(*project.row)
                 PROGRESS.advance(TASK)
+                getattr(project, command)(**kwargs)
+                # TABLE.add_row(*project.row)
+                # PROGRESS.advance(TASK)
             else:
                 raise Exception(f'Command "{command}" not recognised.')
             LIVE.update(rich.console.Group(TABLE, PROGRESS))
