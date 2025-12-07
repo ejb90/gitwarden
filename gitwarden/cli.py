@@ -47,6 +47,7 @@ def clone(
     Returns:
         None
     """
+    [gitlab.TABLE.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
 
     group = gitlab.GitlabGroup(
         gitlab_url=ctx.obj["url"],

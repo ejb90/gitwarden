@@ -27,7 +27,6 @@ List of git commands, see `git --help`:
 
 See:
 * [gitman](https://gitman.readthedocs.io/en/latest/)
-git
 """
 
 from __future__ import annotations

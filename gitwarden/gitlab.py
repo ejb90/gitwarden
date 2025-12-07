@@ -15,6 +15,26 @@ import rich.progress
 import rich.table
 
 
+# # 1. Define the known operation names
+# OP_CODES = [
+#     "BEGIN",
+#     "CHECKING_OUT",
+#     "COMPRESSING",
+#     "COUNTING",
+#     "END",
+#     "FINDING_SOURCES",
+#     "RECEIVING",
+#     "RESOLVING",
+#     "WRITING",
+# ]
+
+# # 2. Build the map using a dictionary comprehension
+# # It maps the integer value to its string name
+# OP_CODE_MAP = {
+#     getattr(git.RemoteProgress, op_code): op_code
+#     for op_code in OP_CODES
+# }
+
 
 PROGRESS = rich.progress.Progress(
     # rich.progress.TextColumn("[bold blue]{task.fields[filename]}[/]"),
@@ -23,11 +43,15 @@ PROGRESS = rich.progress.Progress(
 )
 TASK = PROGRESS.add_task(description="Processing", total=0)
 TABLE = rich.table.Table()
-[TABLE.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
 CONSOLE = rich.console.Console()
 LIVE = rich.live.Live(console=CONSOLE, refresh_per_second=10)
 LIVE.start()
 
+# class CloneProgress(git.RemoteProgress):
+#     def update(self, op_code, cur_count, max_count=None, message=''):
+#         # print(self.get_curr_op(op_code))
+#         OP_CODE_MAP.get(op_code)
+#         cur_count, max_count
 
 class GitlabGroup(BaseModel):
     """A Gitlab Group convenience class.
@@ -83,38 +107,21 @@ class GitlabGroup(BaseModel):
 
     def recursive_command(self, command: str, **kwargs) -> None:
         """Recursively walk down group tree, finding projects and executing commands."""
-        # self._rich_progress_bar(command)
-        # self._rich_table(command)
         if not self.subgroup:
             PROGRESS.update(TASK, total=self.count)
         
         for project in self.projects:
-            print(project)
             if hasattr(project, command):
+                getattr(project, command)(**kwargs)
                 TABLE.add_row(*project.row)
                 PROGRESS.advance(TASK)
-                getattr(project, command)(**kwargs)
-                # TABLE.add_row(*project.row)
-                # PROGRESS.advance(TASK)
+                LIVE.update(rich.console.Group(TABLE, PROGRESS))
+                LIVE.refresh()
             else:
                 raise Exception(f'Command "{command}" not recognised.')
-            LIVE.update(rich.console.Group(TABLE, PROGRESS))
 
         for subgroup in self.subgroups:
-            subgroup.recursive_command(command)                
-
-    # def _rich_progress_bar(self, description: str):
-    #     """"""
-    #     self._progress = rich.progress.Progress()
-    #     self._progress.add_task(description=description, total=self.count)
-
-    # def _rich_table(
-    #     self, title: str, columns: list[str] = ["Name", "Group", "Describe", "Remote"]
-    # ):
-    #     """"""
-    #     self._table = rich.table.Table(title=title)
-    #     for column in columns:
-    #         self._table.add_column(column)
+            subgroup.recursive_command(command) 
 
 
 class GitlabProject(BaseModel):
@@ -133,9 +140,9 @@ class GitlabProject(BaseModel):
     def build_local_repo(self):
         """Clone/check local repo."""
         if not self.path.is_dir():
-            self.git = git.Repo.clone_from(self.project.ssh_url_to_repo, self.path)
+            self.git = git.Repo.clone_from(self.project.ssh_url_to_repo, self.path)#, progress=CloneProgress())
         else:
-            self.git = git.Repo(self.path)
+             self.git = git.Repo(self.path)
 
     def clone(self):
         """"""
