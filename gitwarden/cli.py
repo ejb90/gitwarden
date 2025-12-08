@@ -4,7 +4,7 @@ Interact with Gitlab via API.
 
 List of git commands, see `git --help`:
 
-* clone     Clone a repository into a new directory
+* clone     Clone a repository into a new directory                                 DONE
 * init      Create an empty Git repository or reinitialize an existing one
 * add       Add file contents to the index
 * mv        Move or rename a file, a directory, or a symlink
@@ -16,7 +16,7 @@ List of git commands, see `git --help`:
 * log       Show commit logs
 * show      Show various types of objects
 * status    Show the working tree status
-* branch    List, create, or delete branches
+* branch    List, create, or delete branches                                        DONE
 * commit    Record changes to the repository
 * merge     Join two or more development histories together
 * rebase    Reapply commits on top of another base tip
