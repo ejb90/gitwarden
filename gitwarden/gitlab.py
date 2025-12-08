@@ -3,6 +3,7 @@
 from __future__ import annotations
 import os
 import pathlib
+import pickle
 import typing
 
 import git
@@ -13,6 +14,10 @@ import rich.console
 import rich.live
 import rich.progress
 import rich.table
+import rich.tree
+
+
+GROUP_FNAME = pathlib.Path(".gitwarden.pkl")
 
 
 # 1. Define the known operation names
@@ -34,6 +39,9 @@ OP_CODE_MAP = {
     getattr(git.RemoteProgress, op_code): op_code
     for op_code in OP_CODES
 }
+
+
+TREE = rich.tree.Tree("Tree")
 
 
 PROGRESS_TOTAL = rich.progress.Progress(
@@ -97,11 +105,13 @@ class GitlabGroup(BaseModel):
     def model_post_init(self, __context=None) -> None:
         """Post-init function calls."""
         self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
+        self.path = self.path / self.gitlab_group
         self.group = self.server.groups.get(self.gitlab_group)
         self.build()
 
     def build(self) -> None:
         """Build each project object."""
+        # Loop through projects in the group, set up GitlabProject instance for the project
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
             proj = GitlabProject(project=project)
             if self.flat:
@@ -109,6 +119,8 @@ class GitlabGroup(BaseModel):
             else:
                 proj.path = self.path / project.path.replace(self.path.name + "-", "")
             self.projects.append(proj)
+
+        # Loop through sub-groups in the group, set up GitlabGroup instance for the subgroup
         for group in self.group.subgroups.list(all=True):
             grp = GitlabGroup(
                 gitlab_url=self.gitlab_url,
@@ -119,6 +131,7 @@ class GitlabGroup(BaseModel):
                 subgroup=True,
             )
             self.subgroups.append(grp)
+        self.dump()
 
     @property
     def count(self) -> int:
@@ -141,16 +154,22 @@ class GitlabGroup(BaseModel):
                 TABLE.add_row(*project.row)
                 PROGRESS_TOTAL.update(TASK_TOTAL, description=project.name)
                 PROGRESS_TOTAL.advance(TASK_TOTAL)
-                # PROGRESS_PROJECT.update(TASK_PROJECT, total=self.count)
                 LIVE.update(rich.console.Group(TABLE, PROGRESS_PROJECT, PROGRESS_TOTAL), refresh=True)
             else:
                 raise Exception(f'Command "{command}" not recognised.')
 
         for subgroup in self.subgroups:
-            subgroup.recursive_command(command) 
+            subgroup.recursive_command(command, **kwargs) 
         
         if not self.subgroup:
             LIVE.update(rich.console.Group(TABLE), refresh=True)
+        
+        self.dump()
+
+    def dump(self):
+        """Dump to file."""
+        with open(GROUP_FNAME, "wb") as fobj:
+            pickle.dump(self, fobj)
 
 
 class GitlabProject(BaseModel):
@@ -165,19 +184,13 @@ class GitlabProject(BaseModel):
     def model_post_init(self, __context=None) -> None:
         """Post-init function calls."""
         if self.path is None:
-            self.path = pathlib.Path() / self.project.path
-
-    def build_local_repo(self):
-        """Clone/check local repo."""
-        if not self.path.is_dir():
-            self.git = git.Repo.clone_from(self.project.ssh_url_to_repo, self.path, progress=CloneProgress())
-        else:
-             self.git = git.Repo(self.path)
-        self.name = pathlib.Path(self.git.working_tree_dir).name
+            self.path = pathlib.Path() / self.project.path 
 
     def clone(self):
         """"""
-        self.build_local_repo()
+        self.git = git.Repo.clone_from(self.project.ssh_url_to_repo, self.path, progress=CloneProgress())
+        self.name = pathlib.Path(self.git.working_tree_dir).name
+
         self.row = [
             self.name,
             self.project.path_with_namespace,
@@ -185,3 +198,31 @@ class GitlabProject(BaseModel):
             str(self.path),
             self.git.remote(name="origin").url,
         ]
+    
+    def branch(self, name=None):
+        """"""
+        if not self.path:
+            raise Exception(f"Cannot find repository @ \"{self.path}\"")
+        self.git = git.Repo(self.path)
+
+        self.row = [
+            self.name,
+            self.project.path_with_namespace,
+            self.git.git.rev_parse("--abbrev-ref", "HEAD"),
+            name,
+        ]
+        self.git.create_head(name)
+
+    def checkout(self, name=None):
+        """"""
+        if not self.path:
+            raise Exception(f"Cannot find repository @ \"{self.path}\"")
+        self.git = git.Repo(self.path)
+
+        self.row = [
+            self.name,
+            self.project.path_with_namespace,
+            self.git.git.rev_parse("--abbrev-ref", "HEAD"),
+            name,
+        ]
+        self.git.heads[name].checkout()
