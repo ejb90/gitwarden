@@ -40,10 +40,6 @@ OP_CODE_MAP = {
     for op_code in OP_CODES
 }
 
-
-TREE = rich.tree.Tree("Tree")
-
-
 PROGRESS_TOTAL = rich.progress.Progress(
     rich.progress.TextColumn("Project: [progress.description]{task.description:30}"),
     rich.progress.BarColumn(),
@@ -91,11 +87,13 @@ class GitlabGroup(BaseModel):
     Attributes:
         ...
     """
-    gitlab_group: str
+    name: str
+    shortname: str = ""
     gitlab_url: str = "https://gitlab.com"
     gitlab_key: str = os.environ.get("GITLAB_PRIVATE_KEY", "")
     server: typing.Any | None = None
     group: typing.Any | None = None
+    root: pathlib.Path = pathlib.Path().resolve()
     path: pathlib.Path = pathlib.Path().resolve()
     flat: bool = True
     projects: list[str] = Field(default_factory=list)
@@ -104,16 +102,22 @@ class GitlabGroup(BaseModel):
 
     def model_post_init(self, __context=None) -> None:
         """Post-init function calls."""
+        self.shortname = pathlib.Path(self.name).parts[-1]
         self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
-        self.path = self.path / self.gitlab_group
-        self.group = self.server.groups.get(self.gitlab_group)
+        self.root = self.root.resolve()
+        self.group = self.server.groups.get(self.name)
+        self.path = self.root / self.name
         self.build()
+
+    @property
+    def toplevel_dir(self):
+        return self.root / self.path.relative_to(self.root).parts[0]
 
     def build(self) -> None:
         """Build each project object."""
         # Loop through projects in the group, set up GitlabProject instance for the project
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
-            proj = GitlabProject(project=project)
+            proj = GitlabProject(project=project, root=self.root)
             if self.flat:
                 proj.path = self.path / project.path
             else:
@@ -125,13 +129,13 @@ class GitlabGroup(BaseModel):
             grp = GitlabGroup(
                 gitlab_url=self.gitlab_url,
                 gitlab_key=self.gitlab_key,
-                gitlab_group=group.full_path,
+                name=group.full_path,
+                root=self.root,
                 path=self.path if self.flat else self.path / group.path,
                 flat=self.flat,
                 subgroup=True,
             )
             self.subgroups.append(grp)
-        self.dump()
 
     @property
     def count(self) -> int:
@@ -144,9 +148,9 @@ class GitlabGroup(BaseModel):
     def recursive_command(self, command: str, **kwargs) -> None:
         """Recursively walk down group tree, finding projects and executing commands."""
         if not self.subgroup:
-            PROGRESS_TOTAL.update(TASK_TOTAL, description=self.gitlab_group, total=self.count)
+            PROGRESS_TOTAL.update(TASK_TOTAL, description=self.name, total=self.count)
         else:
-            PROGRESS_TOTAL.update(TASK_TOTAL, description=self.gitlab_group)
+            PROGRESS_TOTAL.update(TASK_TOTAL, description=self.name)
         
         for project in self.projects:
             if hasattr(project, command):
@@ -166,9 +170,9 @@ class GitlabGroup(BaseModel):
         
         self.dump()
 
-    def dump(self):
+    def dump(self) -> None:
         """Dump to file."""
-        with open(GROUP_FNAME, "wb") as fobj:
+        with open(self.toplevel_dir / GROUP_FNAME, "wb") as fobj:
             pickle.dump(self, fobj)
 
 
@@ -177,6 +181,7 @@ class GitlabProject(BaseModel):
 
     project: typing.Any
     name: str = ""
+    root: pathlib.Path | None = None
     path: pathlib.Path | None = None
     git: typing.Any | None = None
     row: str = ""
@@ -184,7 +189,7 @@ class GitlabProject(BaseModel):
     def model_post_init(self, __context=None) -> None:
         """Post-init function calls."""
         if self.path is None:
-            self.path = pathlib.Path() / self.project.path 
+            self.path = pathlib.Path() / self.project.path
 
     def clone(self):
         """"""
@@ -193,9 +198,9 @@ class GitlabProject(BaseModel):
 
         self.row = [
             self.name,
-            self.project.path_with_namespace,
+            str(self.path.relative_to(self.root)),
             self.git.git.rev_parse("--abbrev-ref", "HEAD"),
-            str(self.path),
+            str(self.path.relative_to(self.root)),
             self.git.remote(name="origin").url,
         ]
     
@@ -207,7 +212,7 @@ class GitlabProject(BaseModel):
 
         self.row = [
             self.name,
-            self.project.path_with_namespace,
+            str(self.path.relative_to(self.root)),
             self.git.git.rev_parse("--abbrev-ref", "HEAD"),
             name,
         ]
@@ -221,7 +226,7 @@ class GitlabProject(BaseModel):
 
         self.row = [
             self.name,
-            self.project.path_with_namespace,
+            str(self.path.relative_to(self.root)),
             self.git.git.rev_parse("--abbrev-ref", "HEAD"),
             name,
         ]

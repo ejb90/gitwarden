@@ -36,9 +36,11 @@ import os
 import pathlib
 import pickle
 
+import rich.tree
 import rich_click as click
 
 import gitwarden.gitlab as gitlab
+import gitwarden.visualise as visualise
 
 
 @click.group()
@@ -49,32 +51,39 @@ import gitwarden.gitlab as gitlab
     default=os.environ.get("GITLAB_PRIVATE_KEY", ""),
     required=False,
 )
+@click.option(
+     "--cfg",
+    type=click.Path(path_type=pathlib.Path),
+    default=gitlab.GROUP_FNAME,
+    required=False
+)
 @click.pass_context
-def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str):
+def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path):
     """Dummy for click"""
     ctx.ensure_object(dict)
     ctx.obj["url"] = gitlab_url
     ctx.obj["key"] = gitlab_key
+    ctx.obj["cfg"] = cfg
 
 
 @cli.command()
-@click.argument("group")
+@click.argument("name")
 @click.argument(
     "directory",
     type=click.Path(path_type=pathlib.Path),
-    default=None,
+    default=pathlib.Path(),
     required=False,
 )
 @click.option("--flat", type=bool, default=False, required=False)
 @click.pass_context
 def clone(
-    ctx: click.Context, group: str, directory: pathlib.Path | None, flat: bool
+    ctx: click.Context, name: str, directory: pathlib.Path, flat: bool
 ) -> None:
     """Clone repos recursively.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
-        group (str):                        Name of the Gitlab group to recursively clone.
+        name (str):                         Name of the Gitlab group to recursively clone.
         directory (pathlib.Path, None):     Directory in which to clone repositories.
 
     Returns:
@@ -85,11 +94,10 @@ def clone(
     group = gitlab.GitlabGroup(
         gitlab_url=ctx.obj["url"],
         gitlab_key=ctx.obj["key"],
-        gitlab_group=group,
+        name=name,
         flat=flat,
+        root=directory,
     )
-    if directory is not None:
-        group.path = directory
     group.recursive_command("clone")
 
 
@@ -106,16 +114,18 @@ def branch(ctx: click.Context, name: str) -> None:
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
-        name (str):                         Name of the branch to create.
+        name (str):                         Name of the branch to checkout.
 
     Returns:
         None
     """
     [gitlab.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
 
-    if gitlab.GROUP_FNAME.is_file():
-        with open(gitlab.GROUP_FNAME, "rb") as fobj:
+    if ctx.obj["cfg"].is_file():
+        with open(ctx.obj["cfg"], "rb") as fobj:
             group = pickle.load(fobj)
+    else:
+        raise Exception(f"No metarepository found, expected at \"{ctx.obj["cfg"]}\"")
 
     group.recursive_command("branch", name=name)
 
@@ -140,8 +150,42 @@ def checkout(ctx: click.Context, name: str) -> None:
     """
     [gitlab.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
 
-    if gitlab.GROUP_FNAME.is_file():
-        with open(gitlab.GROUP_FNAME, "rb") as fobj:
+    if ctx.obj["cfg"].is_file():
+        with open(ctx.obj["cfg"], "rb") as fobj:
             group = pickle.load(fobj)
+    else:
+        raise Exception(f"No metarepository found, expected at \"{ctx.obj["cfg"]}\"")
 
     group.recursive_command("checkout", name=name)
+
+
+@cli.command()
+@click.pass_context
+@click.argument(
+    "viz_type",
+    type=click.Choice(["tree", "table"]),    
+    required=True,
+)
+def viz(ctx: click.Context, viz_type: str) -> None:
+    """Clone repos recursively.
+
+    Arguments:
+        ctx (click.Context):                Top level CLI flags.
+        viz_type (str):                     Visualisation type.
+
+    Returns:
+        None
+    """
+    tree = rich.tree.Tree("Tree")
+
+    if ctx.obj["cfg"].is_file():
+        with open(ctx.obj["cfg"], "rb") as fobj:
+            group = pickle.load(fobj)
+    else:
+        raise Exception(f"No metarepository found, expected at \"{ctx.obj["cfg"]}\"")
+
+    if viz_type == 'tree':
+        visualise.tree(group)
+    elif viz_type == 'table':
+        visualise.table(group)
+        

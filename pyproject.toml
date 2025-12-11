@@ -22,3 +22,13 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "W", "C", "B", "I", "Q"]
+ignore = []
+extend-ignore = []
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
