@@ -8,7 +8,7 @@ import pytest
 import gitwarden.cli
 
 
-def test_clone(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+def test_clone_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     """Basic clone."""
     runner = CliRunner()
     monkeypatch.chdir(tmp_path)
@@ -20,6 +20,50 @@ def test_clone(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     assert result.exit_code == 0
     assert dname.is_dir()
     assert fname.is_file()
+
+    for dname2 in (
+        "ejb90-project",
+        "models/model-a",
+        "models/model-b",
+        "models/model-c",
+        "models/subgroup-1/subgroup-1-model-a",
+        "models/subgroup-1/subgroup-1-model-b",
+    ):
+        assert (dname / dname2).is_dir()
+
+
+def test_clone_flat(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    """Basic flat clone."""
+    runner = CliRunner()
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(gitwarden.cli.cli, ["clone", "ejb90-group", "--flat"])
+
+    dname = tmp_path / "ejb90-group"
+    fname = dname / ".gitwarden.pkl"
+
+    assert result.exit_code == 0
+    assert fname.is_file()
+
+    for dname2 in (
+        "ejb90-project",
+        "models-model-a",
+        "models-model-b",
+        "models-model-c",
+        "models-subgroup-1-subgroup-1-model-a",
+        "models-subgroup-1-subgroup-1-model-b",
+    ):
+        assert (dname.parent / f"{dname.name}-{dname2}").is_dir()
+
+
+def test_clone_limited_access(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+    """Clone with access to one subproject, but not the other."""
+    runner = CliRunner()
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(gitwarden.cli.cli, ["clone", "mobot-group"])
+
+    dname = tmp_path / "mobot-group"
+    assert (dname / "access").is_dir()
+    assert not (dname / "no-access").is_dir()
 
 
 def test_branch(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:

@@ -117,11 +117,12 @@ class GitlabGroup(BaseModel):
         """Build each project object."""
         # Loop through projects in the group, set up GitlabProject instance for the project
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
-            proj = GitlabProject(project=project, root=self.root)
+            proj = GitlabProject(project=project, root=self.root)  
             if self.flat:
-                proj.path = self.path / project.path
+                proj.path = self.path.parent / f"{self.path.name}-{project.path}"
             else:
-                proj.path = self.path / project.path.replace(self.path.name + "-", "")
+                proj.path = self.path / project.path
+            print(proj.path)
             self.projects.append(proj)
 
         # Loop through sub-groups in the group, set up GitlabGroup instance for the subgroup
@@ -135,6 +136,7 @@ class GitlabGroup(BaseModel):
                 flat=self.flat,
                 subgroup=True,
             )
+            print(grp.name, grp.path)
             self.subgroups.append(grp)
 
     @property
@@ -193,6 +195,7 @@ class GitlabProject(BaseModel):
 
     def clone(self):
         """"""
+        exit()
         self.git = git.Repo.clone_from(self.project.ssh_url_to_repo, self.path, progress=CloneProgress())
         self.name = pathlib.Path(self.git.working_tree_dir).name
 

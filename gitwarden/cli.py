@@ -74,7 +74,7 @@ def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path)
     default=pathlib.Path(),
     required=False,
 )
-@click.option("--flat", type=bool, default=False, required=False)
+@click.option("--flat", type=bool, is_flag=True, default=False)
 @click.pass_context
 def clone(
     ctx: click.Context, name: str, directory: pathlib.Path, flat: bool
@@ -89,7 +89,6 @@ def clone(
     Returns:
         None
     """
-    print("hi")
     [gitlab.TABLE.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
 
     group = gitlab.GitlabGroup(
