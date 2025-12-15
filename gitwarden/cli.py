@@ -89,6 +89,7 @@ def clone(
     Returns:
         None
     """
+    print("hi")
     [gitlab.TABLE.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
 
     group = gitlab.GitlabGroup(

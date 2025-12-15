@@ -8,6 +8,8 @@ dependencies = [
     "click",
     "gitpython",
     "pydantic",
+    "pytest",
+    "pytest-cov",
     "python-gitlab",
     "rich",
     "rich-click",
