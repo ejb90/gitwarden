@@ -30,6 +30,7 @@ See:
 """
 
 from __future__ import annotations
+
 import os
 import pathlib
 import pickle
@@ -37,12 +38,12 @@ import typing
 
 import git
 import gitlab
-from pydantic import BaseModel, Field
 import rich
 import rich.console
 import rich.layout
 import rich.progress
 import rich_click as click
+from pydantic import BaseModel, Field
 
 
 class GitlabGroup(BaseModel):
@@ -88,21 +89,21 @@ class GitlabGroup(BaseModel):
     def count(self) -> int:
         """How many repositories are in the full group structure?"""
         count = 0
-        for project in self.projects:
+        for _project in self.projects:
             count += 1
         for subgroup in self.subgroups:
             count += subgroup.count
         return count
 
-    def _rich_progress_bar(self, description: str):
+    def _rich_progress_bar(self, description: str) -> None:
         """"""
         self._progress = rich.progress.Progress()
         self._progress.add_task(description=description, total=self.count)
 
-    def _rich_table(
-        self, title: str, columns: list[str] = ["Name", "Group", "Describe", "Remote"]
-    ):
+    def _rich_table(self, title: str, columns: list[str] | None = None) -> None:
         """"""
+        if columns is None:
+            columns = ["Name", "Group", "Describe", "Remote"]
         self._table = rich.table.Table(title=title)
         for column in columns:
             self._table.add_column(column)
@@ -117,7 +118,7 @@ class GitlabGroup(BaseModel):
             subgroup.subgroup = True
             self.subgroups.append(subgroup)
 
-    def recursive_command(self, command, **kwargs):
+    def recursive_command(self, command: str, **kwargs) -> None:
         """Recursively walk down group tree, finding projects and executing commands."""
         if not self.subgroup:
             self._console = rich.console.Console()
@@ -140,34 +141,23 @@ class GitlabGroup(BaseModel):
         if not self.subgroup:
             self._console.print(self._table)
 
-        #     self._rich_progress_bar(command)
-        #     self._rich_table(command)
-        # console.print(self.table)
-
-    # def clone(self, directory: pathlib.Path) -> None:
-    #     """"""
-    #     for entry in (self.projects + self.subgroups):
-    #         entry.clone(directory)
-
 
 class GitlabProject:
     """A Gitlab Project convenience class."""
 
-    def __init__(self, gitlab_project):
+    def __init__(self, gitlab_project) -> None:
         self.gitlab_project = gitlab_project
         self.path = pathlib.Path() / self.gitlab_project.path
         self.git = None
 
-    def build_local_repo(self):
+    def build_local_repo(self) -> None:
         """Clone/check local repo."""
         if not self.path.is_dir():
-            self.git = git.Repo.clone_from(
-                self.gitlab_project.ssh_url_to_repo, self.path
-            )
+            self.git = git.Repo.clone_from(self.gitlab_project.ssh_url_to_repo, self.path)
         else:
             self.git = git.Repo(self.path)
 
-    def clone(self, directory=None):
+    def clone(self, directory: pathlib.Path | None=None):
         """"""
         if directory is not None:
             self.path = directory
@@ -179,7 +169,7 @@ class GitlabProject:
             self.git.remote(name="origin").url,
         ]
 
-    def branch(self):
+    def branch(self) -> None:
         """"""
 
 
@@ -203,7 +193,7 @@ def get_gitlab_group(
 
 
 @click.group()
-def main():
+def main() -> None:
     """Dummy for click"""
     pass
 
@@ -232,7 +222,7 @@ def clone(group: str, directory: pathlib.Path | None) -> None:
 
 
 @main.command()
-def branch():
+def branch() -> None:
     """Branch repos recursively.
 
     Arguments:
@@ -244,7 +234,7 @@ def branch():
 
 
 @main.command()
-def checkout():
+def checkout() -> None:
     """Checkout repos recursively.
 
     Arguments:
@@ -256,7 +246,7 @@ def checkout():
 
 
 @main.command()
-def pull():
+def pull() -> None:
     """Pull repos recursively.
 
     Arguments:
