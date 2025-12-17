@@ -39,8 +39,7 @@ import pickle
 import rich.tree
 import rich_click as click
 
-import gitwarden.gitlab as gitlab
-import gitwarden.visualise as visualise
+from gitwarden import gitlab, output, visualise
 
 
 @click.group()
@@ -52,14 +51,14 @@ import gitwarden.visualise as visualise
     required=False,
 )
 @click.option(
-     "--cfg",
+    "--cfg",
     type=click.Path(path_type=pathlib.Path),
     default=gitlab.GROUP_FNAME,
-    required=False
+    required=False,
 )
 @click.pass_context
-def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path):
-    """Dummy for click"""
+def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path) -> None:
+    """Dummy for click."""
     ctx.ensure_object(dict)
     ctx.obj["url"] = gitlab_url
     ctx.obj["key"] = gitlab_key
@@ -76,21 +75,19 @@ def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path)
 )
 @click.option("--flat", type=bool, is_flag=True, default=False)
 @click.pass_context
-def clone(
-    ctx: click.Context, name: str, directory: pathlib.Path, flat: bool
-) -> None:
+def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool) -> None:
     """Clone repos recursively.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
         name (str):                         Name of the Gitlab group to recursively clone.
         directory (pathlib.Path, None):     Directory in which to clone repositories.
+        flat (bool):                        Flat directory structure?
 
     Returns:
         None
     """
-    [gitlab.TABLE.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
-
+    [output.TABLE.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
     group = gitlab.GitlabGroup(
         gitlab_url=ctx.obj["url"],
         gitlab_key=ctx.obj["key"],
@@ -119,13 +116,13 @@ def branch(ctx: click.Context, name: str) -> None:
     Returns:
         None
     """
-    [gitlab.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
+    [output.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
 
     if ctx.obj["cfg"].is_file():
         with open(ctx.obj["cfg"], "rb") as fobj:
             group = pickle.load(fobj)
     else:
-        raise Exception(f"No metarepository found, expected at \"{ctx.obj["cfg"]}\"")
+        raise Exception(f'No metarepository found, expected at "{ctx.obj["cfg"]}"')
 
     group.recursive_command("branch", name=name)
 
@@ -148,13 +145,13 @@ def checkout(ctx: click.Context, name: str) -> None:
     Returns:
         None
     """
-    [gitlab.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
+    [output.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
 
     if ctx.obj["cfg"].is_file():
         with open(ctx.obj["cfg"], "rb") as fobj:
             group = pickle.load(fobj)
     else:
-        raise Exception(f"No metarepository found, expected at \"{ctx.obj["cfg"]}\"")
+        raise Exception(f'No metarepository found, expected at "{ctx.obj["cfg"]}"')
 
     group.recursive_command("checkout", name=name)
 
@@ -163,7 +160,7 @@ def checkout(ctx: click.Context, name: str) -> None:
 @click.pass_context
 @click.argument(
     "viz_type",
-    type=click.Choice(["tree", "table"]),    
+    type=click.Choice(["tree", "table"]),
     required=True,
 )
 def viz(ctx: click.Context, viz_type: str) -> None:
@@ -176,16 +173,15 @@ def viz(ctx: click.Context, viz_type: str) -> None:
     Returns:
         None
     """
-    tree = rich.tree.Tree("Tree")
+    rich.tree.Tree("Tree")
 
     if ctx.obj["cfg"].is_file():
         with open(ctx.obj["cfg"], "rb") as fobj:
             group = pickle.load(fobj)
     else:
-        raise Exception(f"No metarepository found, expected at \"{ctx.obj["cfg"]}\"")
+        raise Exception(f'No metarepository found, expected at "{ctx.obj["cfg"]}"')
 
-    if viz_type == 'tree':
+    if viz_type == "tree":
         visualise.tree(group)
-    elif viz_type == 'table':
+    elif viz_type == "table":
         visualise.table(group)
-        

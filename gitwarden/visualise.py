@@ -7,15 +7,15 @@ import rich.tree
 from gitwarden.gitlab import GitlabGroup
 
 
-def build_tree(group, tree):
+def build_tree(group: GitlabGroup, tree: rich.tree.Tree) -> rich.tree.Tree:
     """Iteratively build the  tree.
 
     Args:
         group (gitlab.GitlabGroup):     Gitlab group instance.
-        tree (rich.tree.Tree):          initial Tree instance.
+        tree (rich.tree.Tree):          Initial Tree instance.
 
     Returns:
-        tree (rich.tree.Tree):          updated Tree instance.
+        rich.tree.Tree:                 Updated Tree instance.
 
     """
     for project in group.projects:
@@ -26,25 +26,50 @@ def build_tree(group, tree):
     return tree
 
 
-def build_table(group, rows=[], depth=0):
-    """Iteratively build the table."""
+def build_table(group: GitlabGroup, rows: None | list[str] = None, depth: int = 0) -> list[str]:
+    """Iteratively build the table.
+
+    Args:
+        group (gitlab.GitlabGroup):     Gitlab group instance.
+        rows (None, list):              Previous table rows.
+        depth (int):                    Depth inside the tree.
+
+    Returns:
+        list:                           New row to print to table.
+    """
+    if rows is None:
+        rows = []
     for project in group.projects:
         rows.append(project.row)
     for grp in group.subgroups:
-        rows.extend(build_table(grp, rows, depth=depth+1))
+        rows.extend(build_table(grp, rows, depth=depth + 1))
     return rows
 
 
-def tree(group: GitlabGroup):
-    """Make a tree visualisation."""
+def tree(group: GitlabGroup) -> None:
+    """Make a tree visualisation.
+
+    Args:
+        group (gitlab.GitlabGroup):     Gitlab group instance.
+
+    Returns:
+        None
+    """
     tree = rich.tree.Tree(group.shortname)
     tree = build_tree(group, tree)
     console = rich.console.Console()
     console.print(tree, crop=True)
 
 
-def table(group: GitlabGroup):
-    """Make a table visualisation."""
+def table(group: GitlabGroup) -> None:
+    """Make a table visualisation.
+
+    Args:
+        group (gitlab.GitlabGroup):     Gitlab group instance.
+
+    Returns:
+        None
+    """
     rows = build_table(group)
     table = rich.table.Table()
     [table.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
@@ -52,6 +77,3 @@ def table(group: GitlabGroup):
         table.add_row(*row)
     console = rich.console.Console()
     console.print(table, crop=True)
-
-
-

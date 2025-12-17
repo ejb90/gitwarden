@@ -1,19 +1,23 @@
 """Fixtures."""
+
+import pathlib
+
 import pytest
 
-import gitwarden.gitlab
+from gitwarden import gitlab
 
 NAME = "ejb90-group"
 
+
 @pytest.fixture(scope="session")
-def group(tmp_path_factory):
+def group(tmp_path_factory: pytest.TempPathFactory) -> gitlab.Group:
     """GitlabGroup object."""
     tmp = tmp_path_factory.mktemp("repo")
-    return gitwarden.gitlab.GitlabGroup(name=NAME, root=tmp)
+    return gitlab.GitlabGroup(name=NAME, root=tmp)
 
 
 @pytest.fixture(scope="session")
-def repo(group):
+def repo(group: gitlab.Group) -> pathlib.Path:
     """Clone repo for testing."""
     group.recursive_command("clone")
     return group.path

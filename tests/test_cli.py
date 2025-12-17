@@ -1,9 +1,10 @@
 """Test cloning functionality."""
+
 import pathlib
 
-from click.testing import CliRunner
 import git
 import pytest
+from click.testing import CliRunner
 
 import gitwarden.cli
 
@@ -26,8 +27,8 @@ def test_clone_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -
         "models/model-a",
         "models/model-b",
         "models/model-c",
-        "models/subgroup-1/subgroup-1-model-a",
-        "models/subgroup-1/subgroup-1-model-b",
+        "models/subgroup-1/model-d",
+        "models/subgroup-1/model-e",
     ):
         assert (dname / dname2).is_dir()
 
@@ -45,12 +46,12 @@ def test_clone_flat(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> 
     assert fname.is_file()
 
     for dname2 in (
-        "ejb90-project",
-        "models-model-a",
-        "models-model-b",
-        "models-model-c",
-        "models-subgroup-1-subgroup-1-model-a",
-        "models-subgroup-1-subgroup-1-model-b",
+        "ejb90-group-ejb90-project",
+        "ejb90-group-models-model-a",
+        "ejb90-group-models-model-b",
+        "ejb90-group-models-model-c",
+        "ejb90-group-models-subgroup-1-model-d",
+        "ejb90-group-models-subgroup-1-model-e",
     ):
         assert (dname.parent / f"{dname.name}-{dname2}").is_dir()
 
@@ -59,7 +60,7 @@ def test_clone_limited_access(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib
     """Clone with access to one subproject, but not the other."""
     runner = CliRunner()
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(gitwarden.cli.cli, ["clone", "mobot-group"])
+    runner.invoke(gitwarden.cli.cli, ["clone", "mobot-group"])
 
     dname = tmp_path / "mobot-group"
     assert (dname / "access").is_dir()
@@ -70,7 +71,7 @@ def test_branch(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
     """Test branching inside a metarepo."""
     runner = CliRunner()
     monkeypatch.chdir(repo)
-    fname =  pathlib.Path(".gitwarden.pkl")
+    fname = pathlib.Path(".gitwarden.pkl")
 
     result = runner.invoke(gitwarden.cli.cli, ["branch", "test"])
 
@@ -89,14 +90,14 @@ def test_branch(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         assert (repo / dname).is_dir()
         assert "main" in git_obj.branches
         assert "test" in git_obj.branches
-        assert git_obj.active_branch.name =="main"
+        assert git_obj.active_branch.name == "main"
 
 
 def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
     """Test branching inside a metarepo."""
     runner = CliRunner()
     monkeypatch.chdir(repo)
-    fname =  pathlib.Path(".gitwarden.pkl")
+    fname = pathlib.Path(".gitwarden.pkl")
 
     result = runner.invoke(gitwarden.cli.cli, ["checkout", "test"])
 
