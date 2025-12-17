@@ -92,7 +92,6 @@ class GitlabGroup(BaseModel):
         return count
 
     def recursive_command(self, command: str, **kwargs: dict) -> None:
-        exit()
         """Recursively walk down group tree, finding projects and executing commands."""
         if not self.subgroup:
             output.PROGRESS_TOTAL.update(output.TASK_TOTAL, description=self.name, total=self.count)
