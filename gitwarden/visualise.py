@@ -1,4 +1,5 @@
 """Visualisation options."""
+import pathlib
 
 import rich.console
 import rich.table
@@ -41,7 +42,7 @@ def build_tree(group: GitlabGroup, tree: rich.tree.Tree) -> rich.tree.Tree:
     return tree
 
 
-def build_table(group: GitlabGroup, rows: None | list[str] = None, depth: int = 0) -> list[str]:
+def build_table(group: GitlabGroup, rows: None | list[str] = None, depth: int = 0, maxdepth: int | None=None) -> list[str]:
     """Iteratively build the table.
 
     Args:
@@ -54,10 +55,11 @@ def build_table(group: GitlabGroup, rows: None | list[str] = None, depth: int = 
     """
     if rows is None:
         rows = []
-    for project in group.projects:
-        rows.append(project.row)
-    for grp in group.subgroups:
-        rows.extend(build_table(grp, rows, depth=depth + 1))
+    if maxdepth is None or depth <= maxdepth:
+        for project in group.projects:
+            rows.append(project.row)
+        for grp in group.subgroups:
+            rows.extend(build_table(grp, rows, depth=depth + 1, maxdepth=maxdepth))
     return rows
 
 
@@ -67,6 +69,8 @@ def build_access(
     depth: int = 0,
     unique_ids: list[str] | None = None,
     explicit: bool = False,
+    root: pathlib.Path = pathlib.Path(),
+    maxdepth: int | None=None
 ) -> list[str]:
     """Iteratively build access lists.
 
@@ -91,7 +95,8 @@ def build_access(
             if member.id not in unique_ids or explicit:
                 rows.append(
                     [
-                        group.name if not i else "",
+                        str(group.path.relative_to(root.parent))
+                          if not i else "",
                         member.name,
                         f"[{CODE_TO_COLOUR[member.access_level]}]{CODE_TO_ACCESS[member.access_level]}",
                         member.public_email,
@@ -100,11 +105,11 @@ def build_access(
                 )
                 unique_ids.append(member.id)
 
-    if isinstance(group, GitlabGroup):
+    if isinstance(group, GitlabGroup) and (maxdepth is None or depth < maxdepth):
         for project in group.projects:
-            rows = build_access(project, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit)
+            rows = build_access(project, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit, maxdepth=maxdepth, root=root)
         for grp in group.subgroups:
-            rows = build_access(grp, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit)
+            rows = build_access(grp, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit, maxdepth=maxdepth, root=root)
 
     return rows
 
@@ -124,7 +129,7 @@ def tree(group: GitlabGroup) -> None:
     console.print(tree, crop=True)
 
 
-def table(group: GitlabGroup) -> None:
+def table(group: GitlabGroup, maxdepth: int | None=None) -> None:
     """Make a table visualisation.
 
     Args:
@@ -142,7 +147,7 @@ def table(group: GitlabGroup) -> None:
     console.print(table, crop=True)
 
 
-def access(group: GitlabGroup, explicit: bool = False) -> None:
+def access(group: GitlabGroup, explicit: bool = False, maxdepth: int | None=None) -> None:
     """Make a acess visualisation.
 
     Args:
@@ -152,7 +157,7 @@ def access(group: GitlabGroup, explicit: bool = False) -> None:
     Returns:
         None
     """
-    rows = build_access(group, explicit=explicit)
+    rows = build_access(group, explicit=explicit, maxdepth=maxdepth, root=group.path)
     table = rich.table.Table()
     [table.add_column(c) for c in ["Group/Project", "User", "Access Level", "Public Email", "Expiry"]]
     for row in rows:

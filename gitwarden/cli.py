@@ -92,6 +92,7 @@ def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool) ->
     group = gitlab.GitlabGroup(
         gitlab_url=ctx.obj["url"],
         gitlab_key=ctx.obj["key"],
+        fullname=name,
         name=name,
         flat=flat,
         root=directory,
@@ -155,7 +156,8 @@ def checkout(ctx: click.Context, name: str) -> None:
     required=True,
 )
 @click.option("--explicit", type=bool, is_flag=True, default=False)
-def viz(ctx: click.Context, viz_type: str, explicit: bool) -> None:
+@click.option("--maxdepth", type=int, default=None)
+def viz(ctx: click.Context, viz_type: str, explicit: bool, maxdepth: int | None) -> None:
     """Clone repos recursively.
 
     Arguments:
@@ -172,9 +174,9 @@ def viz(ctx: click.Context, viz_type: str, explicit: bool) -> None:
     if viz_type == "tree":
         visualise.tree(group)
     elif viz_type == "table":
-        visualise.table(group)
+        visualise.table(group, maxdepth=maxdepth)
     elif viz_type == "access":
-        visualise.access(group, explicit)
+        visualise.access(group, explicit=explicit, maxdepth=maxdepth)
 
 
 def load_cfg(cfg: pathlib.Path | None) -> gitlab.GitlabGroup | gitlab.GitlabProject:

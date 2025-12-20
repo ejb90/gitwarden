@@ -40,7 +40,7 @@ class GitlabGroup(GitlabInstance):
     """
 
     name: str
-    shortname: str = ""
+    fullname: str = ""
     group: typing.Any | None = None
     flat: bool = False
     projects: list[str] = Field(default_factory=list)
@@ -51,8 +51,8 @@ class GitlabGroup(GitlabInstance):
         """Post-init function calls."""
         self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
         self.root = self.root.resolve()
-        self.group = self.server.groups.get(self.name)
-        self.path = self.root / self.name.replace(os.sep, "-") if self.flat else self.root / self.name
+        self.group = self.server.groups.get(self.fullname)
+        self.path = self.root / self.fullname.replace(os.sep, "-") if self.flat else self.root / self.fullname
         self.build()
 
     @property
@@ -79,7 +79,7 @@ class GitlabGroup(GitlabInstance):
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
             proj = GitlabProject(project=project, root=self.root)
             if self.flat:
-                proj.path = self.path.parent / f"{self.path.name}-{project.path}"
+                proj.path = self.path.parent / f"{self.path.fullname}-{project.path}"
             else:
                 proj.path = self.path / project.path
             self.projects.append(proj)
@@ -89,6 +89,7 @@ class GitlabGroup(GitlabInstance):
             grp = GitlabGroup(
                 gitlab_url=self.gitlab_url,
                 gitlab_key=self.gitlab_key,
+                fullname=group.full_path,
                 name=pathlib.Path(group.full_path).name,
                 root=self.root,
                 flat=self.flat,
@@ -109,6 +110,15 @@ class GitlabGroup(GitlabInstance):
         return count
 
     def recursive_command(self, command: str, **kwargs: dict) -> None:
+        # 
+        # exit()
+
+
+
+
+
+
+
         """Recursively walk down group tree, finding projects and executing commands."""
         if not self.subgroup:
             output.PROGRESS_TOTAL.update(output.TASK_TOTAL, description=self.name, total=self.count)
