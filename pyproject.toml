@@ -13,6 +13,7 @@ dependencies = [
     "python-gitlab",
     "rich",
     "rich-click",
+    "sphinx>=9.0.4",
 ]
 
 [project.scripts]

@@ -91,19 +91,19 @@ def build_access(
 
     members = group.members
     if members:
+        members = [member for member in members if member.id not in unique_ids or explicit]
         for i, member in enumerate(members):
-            if member.id not in unique_ids or explicit:
-                rows.append(
-                    [
-                        str(group.path.relative_to(root.parent))
-                          if not i else "",
-                        member.name,
-                        f"[{CODE_TO_COLOUR[member.access_level]}]{CODE_TO_ACCESS[member.access_level]}",
-                        member.public_email,
-                        member.expires_at,
-                    ]
-                )
-                unique_ids.append(member.id)
+            rows.append(
+                [
+                    str(group.path.relative_to(root.parent))
+                        if not i else "",
+                    member.name,
+                    f"[{CODE_TO_COLOUR[member.access_level]}]{CODE_TO_ACCESS[member.access_level]}",
+                    member.public_email,
+                    member.expires_at,
+                ]
+            )
+            unique_ids.append(member.id)
 
     if isinstance(group, GitlabGroup) and (maxdepth is None or depth < maxdepth):
         for project in group.projects:

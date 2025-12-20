@@ -28,5 +28,10 @@
     * [] clone filter - downselect group/project names
     * [] Permissions options
         * [] Show projects/groups a user can access
-        * [] Show users who can access a project/group
-    * [] Rise merge request
+        * [x] Show users who can access a project/group
+            * [] `--concise` option to show groups
+            * [] Add "source" of their access
+        * [] Show groups who can access project/group
+            * [] unix
+            * [] Gitlab
+    * [] Raise merge request
