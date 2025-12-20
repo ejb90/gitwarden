@@ -37,15 +37,14 @@ def test_clone_flat(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> 
     """Basic flat clone."""
     runner = CliRunner()
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(gitwarden.cli.cli, ["clone", "ejb90-group", "--flat"])
+    result = runner.invoke(gitwarden.cli.cli, ["clone", "--flat", "ejb90-group"])
 
-    dname = tmp_path / "ejb90-group"
-    fname = dname / ".gitwarden.pkl"
+    fname = tmp_path / ".gitwarden.pkl"
 
     assert result.exit_code == 0
     assert fname.is_file()
 
-    for dname2 in (
+    for dname in (
         "ejb90-group-ejb90-project",
         "ejb90-group-models-model-a",
         "ejb90-group-models-model-b",
@@ -53,7 +52,7 @@ def test_clone_flat(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> 
         "ejb90-group-models-subgroup-1-model-d",
         "ejb90-group-models-subgroup-1-model-e",
     ):
-        assert (dname.parent / f"{dname.name}-{dname2}").is_dir()
+        assert (tmp_path / dname).is_dir()
 
 
 def test_clone_limited_access(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
@@ -83,8 +82,8 @@ def test_branch(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         "models/model-a",
         "models/model-b",
         "models/model-c",
-        "models/subgroup-1/subgroup-1-model-a",
-        "models/subgroup-1/subgroup-1-model-b",
+        "models/subgroup-1/model-d",
+        "models/subgroup-1/model-e",
     ):
         git_obj = git.Repo(repo / dname)
         assert (repo / dname).is_dir()
@@ -109,11 +108,11 @@ def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         "models/model-a",
         "models/model-b",
         "models/model-c",
-        "models/subgroup-1/subgroup-1-model-a",
-        "models/subgroup-1/subgroup-1-model-b",
+        "models/subgroup-1/model-d",
+        "models/subgroup-1/model-e",
     ):
         git_obj = git.Repo(repo / dname)
         assert (repo / dname).is_dir()
         assert "main" in git_obj.branches
-        assert "test" in git_obj.branches
-        assert git_obj.active_branch.name == "test"
+        assert "branch" in git_obj.branches
+        assert git_obj.active_branch.name == "branch"

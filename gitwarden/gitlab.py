@@ -18,7 +18,21 @@ from gitwarden import output
 GROUP_FNAME = pathlib.Path(".gitwarden.pkl")
 
 
-class GitlabGroup(BaseModel):
+class GitlabInstance(BaseModel):
+    """A Gitlab generic instance convenience class.
+
+    Attributes:
+        ...
+    """
+
+    gitlab_url: str = "https://gitlab.com"
+    gitlab_key: str = os.environ.get("GITLAB_PRIVATE_KEY", "")
+    server: typing.Any | None = None
+    root: pathlib.Path = pathlib.Path().resolve()
+    path: pathlib.Path = pathlib.Path().resolve()
+
+
+class GitlabGroup(GitlabInstance):
     """A Gitlab Group convenience class.
 
     Attributes:
@@ -27,25 +41,25 @@ class GitlabGroup(BaseModel):
 
     name: str
     shortname: str = ""
-    gitlab_url: str = "https://gitlab.com"
-    gitlab_key: str = os.environ.get("GITLAB_PRIVATE_KEY", "")
-    server: typing.Any | None = None
     group: typing.Any | None = None
-    root: pathlib.Path = pathlib.Path().resolve()
-    path: pathlib.Path = pathlib.Path().resolve()
-    flat: bool = True
+    flat: bool = False
     projects: list[str] = Field(default_factory=list)
     subgroups: list[str] = Field(default_factory=list)
     subgroup: bool = False
 
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
-        self.shortname = pathlib.Path(self.name).parts[-1]
         self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
         self.root = self.root.resolve()
         self.group = self.server.groups.get(self.name)
         self.path = self.root / self.name.replace(os.sep, "-") if self.flat else self.root / self.name
         self.build()
+
+    @property
+    def members(self) -> list:
+        """Get members."""
+        self.group = self.server.groups.get(self.group.id)
+        return self.group.members_all.list(all=True)
 
     @property
     def toplevel_dir(self) -> pathlib.Path:
@@ -54,7 +68,10 @@ class GitlabGroup(BaseModel):
         Returns:
             pathlib.Path:       Directory name.
         """
-        return self.root / self.path.relative_to(self.root).parts[0]
+        if self.flat:
+            return self.root
+        else:
+            return self.root / self.path.relative_to(self.root).parts[0]
 
     def build(self) -> None:
         """Build each project object."""
@@ -72,7 +89,7 @@ class GitlabGroup(BaseModel):
             grp = GitlabGroup(
                 gitlab_url=self.gitlab_url,
                 gitlab_key=self.gitlab_key,
-                name=group.full_path,
+                name=pathlib.Path(group.full_path).name,
                 root=self.root,
                 flat=self.flat,
                 subgroup=True,
@@ -97,7 +114,6 @@ class GitlabGroup(BaseModel):
             output.PROGRESS_TOTAL.update(output.TASK_TOTAL, description=self.name, total=self.count)
         else:
             output.PROGRESS_TOTAL.update(output.TASK_TOTAL, description=self.name)
-
         for project in self.projects:
             if hasattr(project, command):
                 getattr(project, command)(**kwargs)
@@ -116,7 +132,6 @@ class GitlabGroup(BaseModel):
 
         if not self.subgroup:
             output.LIVE.update(rich.console.Group(output.TABLE), refresh=True)
-
         self.dump()
 
     def dump(self) -> None:
@@ -125,20 +140,25 @@ class GitlabGroup(BaseModel):
             pickle.dump(self, fobj)
 
 
-class GitlabProject(BaseModel):
+class GitlabProject(GitlabInstance):
     """A Gitlab Project convenience class."""
 
     project: typing.Any
     name: str = ""
-    root: pathlib.Path | None = None
-    path: pathlib.Path | None = None
     git: typing.Any | None = None
     row: str = ""
 
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
+        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
         if self.path is None:
             self.path = pathlib.Path() / self.project.path
+
+    @property
+    def members(self) -> list:
+        """Get members."""
+        self.project = self.server.projects.get(self.project.id)
+        return self.project.members_all.list(all=True)
 
     def clone(self) -> None:
         """Clone a repository.

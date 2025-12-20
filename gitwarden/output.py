@@ -47,7 +47,7 @@ class CloneProgress(git.RemoteProgress):
 
     last_op_code = None
 
-    def update(self, op_code: str, cur_count: int, max_count: int | None = None, message: str = "") -> None:
+    def update(self, op_code: str, cur_count: int, max_count: int | None = None, message: str = "") -> None:  # noqa: ARG002
         """Get updates from git, pass to rich output."""
         # If the op_code changes, reset the counter and change name on the progress bar.
         if op_code != self.last_op_code:

@@ -4,7 +4,22 @@ import rich.console
 import rich.table
 import rich.tree
 
-from gitwarden.gitlab import GitlabGroup
+from gitwarden.gitlab import GitlabGroup, GitlabProject
+
+CODE_TO_ACCESS = {
+    10: "Guest",
+    20: "Reporter",
+    30: "Developer",
+    40: "Maintainer",
+    50: "Owner",
+}
+CODE_TO_COLOUR = {
+    10: "red",
+    20: "bright_magenta",
+    30: "orange1",
+    40: "green",
+    50: "blue",
+}
 
 
 def build_tree(group: GitlabGroup, tree: rich.tree.Tree) -> rich.tree.Tree:
@@ -46,6 +61,54 @@ def build_table(group: GitlabGroup, rows: None | list[str] = None, depth: int = 
     return rows
 
 
+def build_access(
+    group: GitlabGroup | GitlabProject,
+    rows: None | list[str] = None,
+    depth: int = 0,
+    unique_ids: list[str] | None = None,
+    explicit: bool = False,
+) -> list[str]:
+    """Iteratively build access lists.
+
+    Args:
+        group (gitlab.GitlabGroup):     Gitlab group instance.
+        rows (None, list):              Previous table rows.
+        depth (int):                    Depth inside the tree.
+        unique_ids (list):              List of all unique IDs printed
+        explicit (bool):                Explicitly show all members of all groups/projects?
+
+    Returns:
+        list:                           New row to print to table.
+    """
+    if rows is None:
+        rows = []
+    if unique_ids is None:
+        unique_ids = []
+
+    members = group.members
+    if members:
+        for i, member in enumerate(members):
+            if member.id not in unique_ids or explicit:
+                rows.append(
+                    [
+                        group.name if not i else "",
+                        member.name,
+                        f"[{CODE_TO_COLOUR[member.access_level]}]{CODE_TO_ACCESS[member.access_level]}",
+                        member.public_email,
+                        member.expires_at,
+                    ]
+                )
+                unique_ids.append(member.id)
+
+    if isinstance(group, GitlabGroup):
+        for project in group.projects:
+            rows = build_access(project, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit)
+        for grp in group.subgroups:
+            rows = build_access(grp, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit)
+
+    return rows
+
+
 def tree(group: GitlabGroup) -> None:
     """Make a tree visualisation.
 
@@ -72,7 +135,26 @@ def table(group: GitlabGroup) -> None:
     """
     rows = build_table(group)
     table = rich.table.Table()
-    [table.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
+    [table.add_column(c, "bold cyan") for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
+    for row in rows:
+        table.add_row(*row)
+    console = rich.console.Console()
+    console.print(table, crop=True)
+
+
+def access(group: GitlabGroup, explicit: bool = False) -> None:
+    """Make a acess visualisation.
+
+    Args:
+        group (gitlab.GitlabGroup):     Gitlab group instance.
+        explicit (bool):                Explicitly show all members of all groups/projects?
+
+    Returns:
+        None
+    """
+    rows = build_access(group, explicit=explicit)
+    table = rich.table.Table()
+    [table.add_column(c) for c in ["Group/Project", "User", "Access Level", "Public Email", "Expiry"]]
     for row in rows:
         table.add_row(*row)
     console = rich.console.Console()

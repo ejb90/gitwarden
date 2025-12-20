@@ -53,7 +53,7 @@ from gitwarden import gitlab, output, visualise
 @click.option(
     "--cfg",
     type=click.Path(path_type=pathlib.Path),
-    default=gitlab.GROUP_FNAME,
+    default=None,
     required=False,
 )
 @click.pass_context
@@ -88,6 +88,7 @@ def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool) ->
         None
     """
     [output.TABLE.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
+
     group = gitlab.GitlabGroup(
         gitlab_url=ctx.obj["url"],
         gitlab_key=ctx.obj["key"],
@@ -116,14 +117,9 @@ def branch(ctx: click.Context, name: str) -> None:
     Returns:
         None
     """
+    group = load_cfg(ctx.obj["cfg"])
+
     [output.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
-
-    if ctx.obj["cfg"].is_file():
-        with open(ctx.obj["cfg"], "rb") as fobj:
-            group = pickle.load(fobj)
-    else:
-        raise Exception(f'No metarepository found, expected at "{ctx.obj["cfg"]}"')
-
     group.recursive_command("branch", name=name)
 
 
@@ -145,14 +141,9 @@ def checkout(ctx: click.Context, name: str) -> None:
     Returns:
         None
     """
+    group = load_cfg(ctx.obj["cfg"])
+
     [output.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
-
-    if ctx.obj["cfg"].is_file():
-        with open(ctx.obj["cfg"], "rb") as fobj:
-            group = pickle.load(fobj)
-    else:
-        raise Exception(f'No metarepository found, expected at "{ctx.obj["cfg"]}"')
-
     group.recursive_command("checkout", name=name)
 
 
@@ -160,28 +151,80 @@ def checkout(ctx: click.Context, name: str) -> None:
 @click.pass_context
 @click.argument(
     "viz_type",
-    type=click.Choice(["tree", "table"]),
+    type=click.Choice(["tree", "table", "access"]),
     required=True,
 )
-def viz(ctx: click.Context, viz_type: str) -> None:
+@click.option("--explicit", type=bool, is_flag=True, default=False)
+def viz(ctx: click.Context, viz_type: str, explicit: bool) -> None:
     """Clone repos recursively.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
         viz_type (str):                     Visualisation type.
+        explicit (bool):                    Show all info for all projects/groups.
 
     Returns:
         None
     """
+    group = load_cfg(ctx.obj["cfg"])
+
     rich.tree.Tree("Tree")
-
-    if ctx.obj["cfg"].is_file():
-        with open(ctx.obj["cfg"], "rb") as fobj:
-            group = pickle.load(fobj)
-    else:
-        raise Exception(f'No metarepository found, expected at "{ctx.obj["cfg"]}"')
-
     if viz_type == "tree":
         visualise.tree(group)
     elif viz_type == "table":
         visualise.table(group)
+    elif viz_type == "access":
+        visualise.access(group, explicit)
+
+
+def load_cfg(cfg: pathlib.Path | None) -> gitlab.GitlabGroup | gitlab.GitlabProject:
+    """Load Group/Project instance.
+
+    Arguments:
+        cfg (pathlib.Path, None):                   Path to cfg serialised pickle, or None.
+
+    Returns:
+        gitlab.GitlabGroup, gitlab.GitlabProject:   Returned instance.
+    """
+    if cfg is None:
+        cfg = gitlab.GROUP_FNAME
+        if not cfg.is_file():
+            for parent in pathlib.Path().resolve().parents:
+                cfg = parent / gitlab.GROUP_FNAME
+                if cfg.is_file():
+                    break
+            else:
+                raise Exception(f'No gitwarden configuration file "{gitlab.GROUP_FNAME}" found up to root.')
+    else:
+        raise Exception(f'The provided gitwarden configuration file "{cfg}" does not exist.')
+
+    with open(cfg, "rb") as fobj:
+        group = pickle.load(fobj)
+    # Now down-select to the subgroup/project in the pwd
+    grp = find_subgroup(group)
+    return grp
+
+
+def find_subgroup(group: gitlab.GitlabGroup | gitlab.GitlabProject) -> gitlab.GitlabGroup | gitlab.GitlabProject:
+    """Find subgroup in pwd of Group structure.
+
+    Arguments:
+        group (gitlab.GitlabGroup):     Gitlab group instance.
+
+    Returns:
+        gitlab.GitlabGroup, None:       Gitlab group instance.
+
+    """
+    pwd = pathlib.Path().resolve()
+    if group.path.resolve() == pwd:
+        return group
+    for project in group.projects:
+        if project.path.resolve() == pwd:
+            return project
+
+    for grp in group.subgroups:
+        if grp.path.resolve() == pwd:
+            return grp
+        return find_subgroup(grp)
+    else:
+        return None
