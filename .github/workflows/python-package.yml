@@ -42,5 +42,7 @@ jobs:
       env:
         GITLAB_API_KEY: ${{ secrets.GITLAB_API_KEY }}
       run: uv run pytest
-    - name: Upload coverage
-      uses: codecov/codecov-action@v4
+    - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
