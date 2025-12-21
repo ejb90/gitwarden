@@ -31,4 +31,6 @@ jobs:
     - name: Format with ruff
       run: uv run ruff format --diff
     - name: Test with pytest
+      env:
+        GITLAB_API_KEY: ${{ secrets.GITLAB_API_KEY }}
       run: uv run pytest
