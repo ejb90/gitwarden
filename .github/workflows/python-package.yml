@@ -38,20 +38,7 @@ jobs:
       run: uv run ruff check --diff
     - name: Format with ruff
       run: uv run ruff format --diff
-    # - name: test direct clone
-    #   run:  git clone -v --progress -- git@gitlab.com:ejb90-group/ejb90-project.git
-    # - name: test direct clone 2
-    #   run:  git clone -v --progress -- git@gitlab.com:ejb90-group/models/model-a.git 
-    # - name: test direct clone 3
-    #   run:  git clone -v --progress -- git@gitlab.com:ejb90-group/models/model-b.git 
-    # - name: test direct clone 4
-    #   run:  git clone -v --progress -- git@gitlab.com:ejb90-group/models/model-c.git 
-    # - name: test direct clone 5
-    #   run:  git clone -v --progress -- git@gitlab.com:ejb90-group/models/subgroup-1/model-d.git 
-    # - name: test direct clone 6
-    #   run:  git clone -v --progress -- git@gitlab.com:ejb90-group/models/subgroup-1/model-e.git 
     - name: Test with pytest
       env:
         GITLAB_API_KEY: ${{ secrets.GITLAB_API_KEY }}
-        MY_DUMMY_VARIABLE: HELLO
       run: echo $MY_DUMMY_VARIABLE; uv run pytest -k test_clone_simple
