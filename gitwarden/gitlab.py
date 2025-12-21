@@ -26,7 +26,7 @@ class GitlabInstance(BaseModel):
     """
 
     gitlab_url: str = "https://gitlab.com"
-    gitlab_key: str = os.environ.get("GITLAB_PRIVATE_KEY", "")
+    gitlab_key: str = os.environ.get("GITLAB_API_KEY", "")
     server: typing.Any | None = None
     root: pathlib.Path = pathlib.Path().resolve()
     path: pathlib.Path = pathlib.Path().resolve()

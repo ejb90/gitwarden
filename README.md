@@ -22,7 +22,7 @@ pip install gitwarden
 
 Keys can be set up in two ways:
 
-1. Via an environment variable: `export GITLAB_PRIVATE_KEY=<my-private-key>`
+1. Via an environment variable: `export GITLAB_API_KEY=<my-private-key>`
 2. Via the "gitwarden.yaml" file.
 
 # Usage (CLI)
