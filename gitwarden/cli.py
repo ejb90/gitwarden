@@ -47,7 +47,7 @@ from gitwarden import gitlab, output, visualise
 @click.option(
     "--gitlab-key",
     type=str,
-    default=os.environ.get("GITLAB_PRIVATE_KEY", ""),
+    default=os.environ.get("GITLAB_API_KEY", ""),
     required=False,
 )
 @click.option(
