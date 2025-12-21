@@ -16,6 +16,7 @@ def test_clone_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -
     result = runner.invoke(gitwarden.cli.cli, ["clone", "ejb90-group"])
 
     print(result.output)
+    print(result.exception)
 
     dname = tmp_path / "ejb90-group"
     fname = dname / ".gitwarden.pkl"
