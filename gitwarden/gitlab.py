@@ -50,8 +50,8 @@ class GitlabGroup(GitlabInstance):
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
         self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
-        print(self.server.auth())           
-        print(self.server.user.username)  
+        print(self.server.auth())
+        print(self.server.user.username)
         self.root = self.root.resolve()
         self.group = self.server.groups.get(self.fullname)
         self.path = self.root / self.fullname.replace(os.sep, "-") if self.flat else self.root / self.fullname
