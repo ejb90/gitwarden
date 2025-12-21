@@ -114,5 +114,35 @@ def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         git_obj = git.Repo(repo / dname)
         assert (repo / dname).is_dir()
         assert "main" in git_obj.branches
-        assert "branch" in git_obj.branches
-        assert git_obj.active_branch.name == "branch"
+        assert "test" in git_obj.branches
+        assert git_obj.active_branch.name == "test"
+
+
+@pytest.mark.parametrize(
+    ("command", "subdir", "expectation"),
+    [
+        ("tree", "", ["ejb90-group", "ejb90-project", "models", "model-a", "model-b", "model-c", "subgroup-1", "model-d", "model-e",]),
+        ("table", "", ["ejb90-project", "model-a", "model-b", "model-c","model-d", "model-e",]),
+        ("access", "", ["Ellis", "mobot",]),
+        
+        ("tree", "models", ["models", "model-a", "model-b", "model-c", "subgroup-1", "model-d", "model-e",]),
+        ("table", "models", ["model-a", "model-b", "model-c","model-d", "model-e",]),
+        ("access", "models", ["Ellis", "mobot",]),
+        ("tree", "models/model-a", ["models", "model-a",]),
+        ("table", "models", ["model-a",]),
+        ("access", "models", ["Ellis", "mobot",]),
+    ]
+)
+def test_viz(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path, command:str, subdir, expectation: list[str]) -> None:
+    """Test tree visualisation."""
+    runner = CliRunner()
+    monkeypatch.chdir(repo / subdir)
+    fname = pathlib.Path(".gitwarden.pkl")
+
+    result = runner.invoke(gitwarden.cli.cli, ["viz", command])
+
+    assert result.exit_code == 0 
+
+    for name in expectation:
+        assert name in result.output
+

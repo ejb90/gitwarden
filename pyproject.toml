@@ -77,4 +77,31 @@ docstring-code-format = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--tb=short",
+    "--cov=gitwarden",
+    "--cov-report=xml",
+    "--cov-report=term",
+    "--cov-report=html",
+    "--cov-report=term-missing",
+    "--cov-fail-under=90",
+]
+
 testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: integration tests",
+]
+
+xfail_strict = true
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:pkg_resources",
+]

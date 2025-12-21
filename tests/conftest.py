@@ -13,13 +13,11 @@ NAME = "ejb90-group"
 def group(tmp_path_factory: pytest.TempPathFactory) -> GitlabGroup:
     """GitlabGroup object."""
     tmp = tmp_path_factory.mktemp("repo")
-    return GitlabGroup(name=NAME, root=tmp)
+    return GitlabGroup(name=NAME, fullname=NAME, root=tmp)
 
 
 @pytest.fixture(scope="session")
 def repo(group: GitlabGroup) -> pathlib.Path:
     """Clone repo for testing."""
-    print(group.path)
-    print(group.flat)
     group.recursive_command("clone")
     return group.path

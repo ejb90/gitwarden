@@ -38,7 +38,7 @@ def build_tree(group: GitlabGroup, tree: rich.tree.Tree) -> rich.tree.Tree:
     for project in group.projects:
         branch = tree.add(project.name)
     for grp in group.subgroups:
-        branch = tree.add(grp.shortname)
+        branch = tree.add(grp.name)
         build_tree(grp, branch)
     return tree
 
@@ -63,7 +63,7 @@ def build_table(
         for project in group.projects:
             rows.append(project.row)
         for grp in group.subgroups:
-            rows.extend(build_table(grp, rows, depth=depth + 1, maxdepth=maxdepth))
+            rows = build_table(grp, rows, depth=depth + 1, maxdepth=maxdepth)
     return rows
 
 
@@ -132,7 +132,7 @@ def tree(group: GitlabGroup) -> None:
     Returns:
         None
     """
-    tree = rich.tree.Tree(group.shortname)
+    tree = rich.tree.Tree(group.name)
     tree = build_tree(group, tree)
     console = rich.console.Console()
     console.print(tree, crop=True)

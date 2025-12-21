@@ -55,7 +55,7 @@ gitwarden checkout <name>
 
 ### Tree
 
-Run:
+To visualise the hierarchy of Groups/Projects as a Run, run:
 
 ```
 gitwarden viz tree
@@ -76,7 +76,7 @@ ejb90-group
 
 ### Table
 
-Run:
+To visualise the hierarchy of Groups/Projects as a Table, run:
 
 ```
 gitwarden viz table
@@ -95,6 +95,26 @@ Results in:
 │ model-b       │ ejb90-group/models/subgroup-1/model-b │ main   │ ejb90-group/models/subgroup-1/model-b │ git@gitlab.com:ejb90-group/models/subgroup-1/subgroup-1-model-b.git │
 └───────────────┴───────────────────────────────────────┴────────┴───────────────────────────────────────┴─────────────────────────────────────────────────────────────────────┘
 ```
+
+### Access
+
+To see who has access to a given hierarchy of Groups/Projects, run:
+
+```
+gitwarden viz access
+```
+
+Results in:
+
+```
+┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Group/Project      ┃ User  ┃ Access Level ┃ Public Email ┃ Expiry ┃
+┡━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ ejb90-group        │ Ellis │ Owner        │              │        │
+│ ejb90-group/models │ mobot │ Reporter     │              │        │
+└────────────────────┴───────┴──────────────┴──────────────┴────────┘
+```
+
 
 # Usage (Python API)
 

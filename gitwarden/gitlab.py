@@ -79,7 +79,7 @@ class GitlabGroup(GitlabInstance):
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
             proj = GitlabProject(project=project, root=self.root)
             if self.flat:
-                proj.path = self.path.parent / f"{self.path.fullname}-{project.path}"
+                proj.path = self.path.parent / f"{self.path.name}-{project.path}"
             else:
                 proj.path = self.path / project.path
             self.projects.append(proj)
