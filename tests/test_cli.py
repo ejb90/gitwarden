@@ -193,10 +193,12 @@ def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         ),
         (
             "tree",
-            "models/model-a",
+            "models",
             [
                 "models",
                 "model-a",
+                "model-b",
+                "model-c",
             ],
         ),
         (
@@ -224,6 +226,10 @@ def test_viz(
     monkeypatch.chdir(repo / subdir)
 
     result = runner.invoke(gitwarden.cli.cli, ["viz", command])
+
+    if result.exit_code != 0:
+        print(result.output)
+        print(result.exception)
 
     assert result.exit_code == 0
     for name in expectation:
