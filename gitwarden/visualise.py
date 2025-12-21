@@ -1,4 +1,5 @@
 """Visualisation options."""
+
 import pathlib
 
 import rich.console
@@ -42,13 +43,16 @@ def build_tree(group: GitlabGroup, tree: rich.tree.Tree) -> rich.tree.Tree:
     return tree
 
 
-def build_table(group: GitlabGroup, rows: None | list[str] = None, depth: int = 0, maxdepth: int | None=None) -> list[str]:
+def build_table(
+    group: GitlabGroup, rows: None | list[str] = None, depth: int = 0, maxdepth: int | None = None
+) -> list[str]:
     """Iteratively build the table.
 
     Args:
         group (gitlab.GitlabGroup):     Gitlab group instance.
         rows (None, list):              Previous table rows.
         depth (int):                    Depth inside the tree.
+        maxdepth (int):                 Maximum recursion depth (0=PWD).
 
     Returns:
         list:                           New row to print to table.
@@ -70,7 +74,7 @@ def build_access(
     unique_ids: list[str] | None = None,
     explicit: bool = False,
     root: pathlib.Path = pathlib.Path(),
-    maxdepth: int | None=None
+    maxdepth: int | None = None,
 ) -> list[str]:
     """Iteratively build access lists.
 
@@ -80,6 +84,8 @@ def build_access(
         depth (int):                    Depth inside the tree.
         unique_ids (list):              List of all unique IDs printed
         explicit (bool):                Explicitly show all members of all groups/projects?
+        root (pathlib.Path):            Top level directory.
+        maxdepth (int):                 Maximum recursion depth (0=PWD).
 
     Returns:
         list:                           New row to print to table.
@@ -95,8 +101,7 @@ def build_access(
         for i, member in enumerate(members):
             rows.append(
                 [
-                    str(group.path.relative_to(root.parent))
-                        if not i else "",
+                    str(group.path.relative_to(root.parent)) if not i else "",
                     member.name,
                     f"[{CODE_TO_COLOUR[member.access_level]}]{CODE_TO_ACCESS[member.access_level]}",
                     member.public_email,
@@ -107,9 +112,13 @@ def build_access(
 
     if isinstance(group, GitlabGroup) and (maxdepth is None or depth < maxdepth):
         for project in group.projects:
-            rows = build_access(project, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit, maxdepth=maxdepth, root=root)
+            rows = build_access(
+                project, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit, maxdepth=maxdepth, root=root
+            )
         for grp in group.subgroups:
-            rows = build_access(grp, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit, maxdepth=maxdepth, root=root)
+            rows = build_access(
+                grp, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit, maxdepth=maxdepth, root=root
+            )
 
     return rows
 
@@ -129,16 +138,17 @@ def tree(group: GitlabGroup) -> None:
     console.print(tree, crop=True)
 
 
-def table(group: GitlabGroup, maxdepth: int | None=None) -> None:
+def table(group: GitlabGroup, maxdepth: int | None = None) -> None:
     """Make a table visualisation.
 
     Args:
         group (gitlab.GitlabGroup):     Gitlab group instance.
+        maxdepth (int):                 Maximum recursion depth (0=PWD).
 
     Returns:
         None
     """
-    rows = build_table(group)
+    rows = build_table(group, maxdepth=maxdepth)
     table = rich.table.Table()
     [table.add_column(c, "bold cyan") for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
     for row in rows:
@@ -147,12 +157,13 @@ def table(group: GitlabGroup, maxdepth: int | None=None) -> None:
     console.print(table, crop=True)
 
 
-def access(group: GitlabGroup, explicit: bool = False, maxdepth: int | None=None) -> None:
+def access(group: GitlabGroup, explicit: bool = False, maxdepth: int | None = None) -> None:
     """Make a acess visualisation.
 
     Args:
         group (gitlab.GitlabGroup):     Gitlab group instance.
         explicit (bool):                Explicitly show all members of all groups/projects?
+        maxdepth (int):                 Maximum recursion depth (0=PWD).
 
     Returns:
         None

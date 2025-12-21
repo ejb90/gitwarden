@@ -76,7 +76,7 @@ def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path)
 @click.option("--flat", type=bool, is_flag=True, default=False)
 @click.pass_context
 def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool) -> None:
-    """Clone repos recursively.
+    """Clone Gitlab (sub-)Group/Project repositories recursively.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
@@ -109,7 +109,7 @@ def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool) ->
 )
 @click.pass_context
 def branch(ctx: click.Context, name: str) -> None:
-    """Clone repos recursively.
+    """Add a branch in each Project repository in the hierarchy recursively.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
@@ -133,7 +133,7 @@ def branch(ctx: click.Context, name: str) -> None:
 )
 @click.pass_context
 def checkout(ctx: click.Context, name: str) -> None:
-    """Clone repos recursively.
+    """Checkout a branch in each Project repository in the hierarchy recursively.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
@@ -155,15 +155,22 @@ def checkout(ctx: click.Context, name: str) -> None:
     type=click.Choice(["tree", "table", "access"]),
     required=True,
 )
-@click.option("--explicit", type=bool, is_flag=True, default=False)
-@click.option("--maxdepth", type=int, default=None)
+@click.option(
+    "--explicit",
+    type=bool,
+    is_flag=True,
+    default=False,
+    help="Explicitly show each individual user for each sub-Group and Project.",
+)
+@click.option("--maxdepth", type=int, default=None, help="Maximum recursion depth to traverse for output.")
 def viz(ctx: click.Context, viz_type: str, explicit: bool, maxdepth: int | None) -> None:
-    """Clone repos recursively.
+    """Visualise the hierarchy recursively in different ways.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
         viz_type (str):                     Visualisation type.
         explicit (bool):                    Show all info for all projects/groups.
+        maxdepth (int):                     Maximum recursion depth (0=PWD).
 
     Returns:
         None
