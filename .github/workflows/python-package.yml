@@ -24,6 +24,10 @@ jobs:
       uses: astral-sh/setup-uv@v3
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Trust GitLab host
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
     - name: Install dependencies
       run: uv sync
     - name: Lint with ruff
@@ -33,6 +37,4 @@ jobs:
     - name: Test with pytest
       env:
         GITLAB_API_KEY: ${{ secrets.GITLAB_API_KEY }}
-      run: |
-        test -n "$GITLAB_API_KEY" || (echo "GITLAB_API_KEY is empty" && exit 1)
-        uv run pytest -k test_clone_simple
+      run: uv run pytest -k test_clone_simple
