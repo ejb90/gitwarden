@@ -21,9 +21,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up SSH
-    uses: webfactory/ssh-agent@v0.9.0
-    with:
-      ssh-private-key: ${{ secrets.GITLAB_SSH_KEY }}
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.GITLAB_SSH_KEY }}
     - name: Trust GitLab host
       run: |
         mkdir -p ~/.ssh
