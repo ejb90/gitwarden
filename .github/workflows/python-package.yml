@@ -53,4 +53,5 @@ jobs:
     - name: Test with pytest
       env:
         GITLAB_API_KEY: ${{ secrets.GITLAB_API_KEY }}
-      run: uv run pytest -k test_clone_simple
+        MY_DUMMY_VARIABLE: HELLO
+      run: echo $MY_DUMMY_VARIABLE; uv run pytest -k test_clone_simple
