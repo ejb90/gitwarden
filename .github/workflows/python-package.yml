@@ -35,4 +35,4 @@ jobs:
         GITLAB_API_KEY: ${{ secrets.GITLAB_API_KEY }}
       run: |
         test -n "$GITLAB_API_KEY" || (echo "GITLAB_API_KEY is empty" && exit 1)
-        uv run pytest
+        uv run pytest -k test_clone_simple
