@@ -1,2 +1,5 @@
 """Gitlab wrapper."""
-from . import cli, gitlab, output, visualise
+
+from . import cli, output, visualise
+
+__all__ = ["cli", "cli", "output", "visualise"]

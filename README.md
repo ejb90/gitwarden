@@ -41,7 +41,7 @@ Keys can be set up in two ways:
 
 ## Clone
 
-To clone a Gitlab project at, for example, [https://gitlab.com/ejb90-group](https://gitlab.com/ejb90-group)
+To clone a Gitlab project at, for example, [https://gitlab.com/ejb90-group](https://gitlab.com/ejb90-group).
 
 ```
 gitwarden clone ejb90-group
