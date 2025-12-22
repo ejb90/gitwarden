@@ -3,7 +3,7 @@ name = "gitwarden"
 version = "0.1.0"
 description = "Manage multiple git repositories seemlessly(ish)."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "click",
     "gitpython",
