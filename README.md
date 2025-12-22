@@ -1,6 +1,6 @@
 # gitwarden
 
-![CI](https://github.com/ejb90/gitwarden/actions/workflows/python-package.yml/badge.svg)
+![tests](https://github.com/ejb90/gitwarden/actions/workflows/test.yml/badge.svg)
 [![Coverage](https://codecov.io/gh/ejb90/gitwarden/branch/main/graph/badge.svg)](https://codecov.io/gh/ejb90/gitwarden)
 [![License](https://img.shields.io/github/license/ejb90/gitwarden)](LICENSE)
 ![Ruff](https://img.shields.io/badge/code%20style-ruff-261230)
