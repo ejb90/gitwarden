@@ -37,6 +37,11 @@ nitpicky = True
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
 
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "pydantic": ("https://docs.pydantic.dev/latest/", None),
+}
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
