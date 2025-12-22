@@ -1,17 +1,14 @@
 # gitwarden
 
-![Tests](https://github.com/ejb90/gitwarden/actions/workflows/python-package.yml/badge.svg)
-![Python](https://img.shields.io/pypi/pyversions/ejb90/gitwarden)
-![Ruff](https://img.shields.io/badge/code%20style-ruff-261230)
-[![PyPI](https://img.shields.io/pypi/v/myproject)](https://pypi.org/project/gitwarden/)
+![CI](https://github.com/ejb90/gitwarden/actions/workflows/python-package.yml/badge.svg)
 [![Coverage](https://codecov.io/gh/ejb90/gitwarden/branch/main/graph/badge.svg)](https://codecov.io/gh/ejb90/gitwarden)
 [![License](https://img.shields.io/github/license/ejb90/gitwarden)](LICENSE)
+![Ruff](https://img.shields.io/badge/code%20style-ruff-261230)
 
-
-![CI](https://github.com/ejb90/gitwarden/actions/workflows/ci.yml/badge.svg)
-[![codecov](https://codecov.io/gh/ejb90/gitwarden/branch/main/graph/badge.svg)](https://codecov.io/gh/ejb90/gitwarden)
+<!-- ![Python](https://img.shields.io/pypi/pyversions/ejb90/gitwarden)
+[![PyPI](https://img.shields.io/pypi/v/myproject)](https://pypi.org/project/gitwarden/)
 [![PyPI version](https://img.shields.io/pypi/v/gitwarden)](https://pypi.org/project/gitwarden/)
-[![Python versions](https://img.shields.io/pypi/pyversions/gitwarden)](https://pypi.org/project/gitwarden/)
+[![Python versions](https://img.shields.io/pypi/pyversions/gitwarden)](https://pypi.org/project/gitwarden/) -->
 
 
 
