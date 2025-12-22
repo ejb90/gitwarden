@@ -1,12 +1,22 @@
 # gitwarden
 
 ![Tests](https://github.com/ejb90/gitwarden/actions/workflows/python-package.yml/badge.svg)
-<!-- ![Python](https://img.shields.io/pypi/pyversions/ejb90/gitwarden) -->
+![Python](https://img.shields.io/pypi/pyversions/ejb90/gitwarden)
 ![Ruff](https://img.shields.io/badge/code%20style-ruff-261230)
-<!-- [![PyPI](https://img.shields.io/pypi/v/myproject)](https://pypi.org/project/gitwarden/) -->
-[![Coverage](https://codecov.io/gh/<OWNER>/<REPO>/branch/main/graph/badge.svg)](https://codecov.io/gh/ejb90/gitwarden)
+[![PyPI](https://img.shields.io/pypi/v/myproject)](https://pypi.org/project/gitwarden/)
+[![Coverage](https://codecov.io/gh/ejb90/gitwarden/branch/main/graph/badge.svg)](https://codecov.io/gh/ejb90/gitwarden)
 
-`gitwarden` is a command-line tool and Python library for managing git operations over **nested GitLab groups** using the official GitLab Python API. It makes it easy to traverse complex group hierarchies, perform recursive git operations, and remove submodule interdependencies, accessing only the sub-groups/projects the user has access to.
+
+![CI](https://github.com/ejb90/gitwarden/actions/workflows/ci.yml/badge.svg)
+[![codecov](https://codecov.io/gh/<ORG>/<REPO>/branch/main/graph/badge.svg)](https://codecov.io/gh/<ORG>/<REPO>)
+[![PyPI version](https://img.shields.io/pypi/v/<PACKAGE>)](https://pypi.org/project/<PACKAGE>/)
+[![Python versions](https://img.shields.io/pypi/pyversions/<PACKAGE>)](https://pypi.org/project/<PACKAGE>/)
+[![License](https://img.shields.io/github/license/ejb90/gitwarden)](LICENSE)
+[![Ruff](https://img.shields.io/badge/code%20style-ruff-261230)](https://github.com/astral-sh/ruff)
+
+
+
+`gitwarden` is a command-line tool and Python library for managing git operations over *nested GitLab groups* using the official GitLab Python API. It makes it easy to traverse complex group hierarchies, perform recursive git operations, without the need for submodule interdependencies, accessing only the sub-groups/projects for which the user has access.
 
 # Features
 
