@@ -8,7 +8,7 @@ dependencies = [
     "click",
     "furo",
     "gitpython",
-    "myst-parser",
+    "myst-parser>=4.0.1",
     "pydantic",
     "pytest",
     "pytest-cov",
