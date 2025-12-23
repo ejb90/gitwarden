@@ -185,7 +185,7 @@ class GitlabProject(GitlabInstance):
                 self.git.git.rev_parse("--abbrev-ref", "HEAD"),
                 str(self.path.relative_to(self.root)),
                 self.git.remote(name="origin").url,
-            ]   
+            ]
         )
 
     def branch(self, name: str | None = None) -> None:
@@ -230,7 +230,7 @@ class GitlabProject(GitlabInstance):
 
     def add(self, fnames: tuple) -> None:
         """Add files to staging area.
-        
+
         Returns:
             None
         """
@@ -239,8 +239,11 @@ class GitlabProject(GitlabInstance):
             if fname.is_relative_to(self.path):
                 rel_path = str(fname.relative_to(self.path))
                 if rel_path in self.git.untracked_files or rel_path in [d.a_path for d in self.git.index.diff(None)]:
-
-                    self.git.index.add([fname.relative_to(self.path),])
+                    self.git.index.add(
+                        [
+                            fname.relative_to(self.path),
+                        ]
+                    )
 
                     self.rows.append(
                         [
@@ -249,10 +252,10 @@ class GitlabProject(GitlabInstance):
                             str(fname),
                         ]
                     )
-    
+
     def commit(self, message: str) -> None:
         """Add files to staging area.
-        
+
         Returns:
             None
         """
