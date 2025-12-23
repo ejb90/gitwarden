@@ -61,7 +61,7 @@ def build_table(
         rows = []
     if maxdepth is None or depth <= maxdepth:
         for project in group.projects:
-            rows.append(project.row)
+            rows.extend(project.rows)
         for grp in group.subgroups:
             rows = build_table(grp, rows, depth=depth + 1, maxdepth=maxdepth)
     return rows

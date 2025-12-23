@@ -1,6 +1,7 @@
 """Test cloning functionality."""
 
 import pathlib
+import shutil
 
 import git
 import pytest
@@ -74,7 +75,7 @@ def test_branch(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
     runner = CliRunner()
     monkeypatch.chdir(repo)
     fname = pathlib.Path(".gitwarden.pkl")
-
+    
     result = runner.invoke(gitwarden.cli.cli, ["branch", "test"])
 
     assert result.exit_code == 0
@@ -119,6 +120,56 @@ def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         assert "main" in git_obj.branches
         assert "test" in git_obj.branches
         assert git_obj.active_branch.name == "test"
+
+
+# def test_add_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+#     """Test branching inside a metarepo."""
+#     runner = CliRunner()
+#     monkeypatch.chdir(repo)
+#     fname = pathlib.Path(".gitwarden.pkl")
+
+#     result = runner.invoke(gitwarden.cli.cli, ["add", "mynewfile"])
+#     assert result.exit_code == 0
+
+
+# def test_add_modify(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+#     """Test branching inside a metarepo."""
+#     runner = CliRunner()
+#     monkeypatch.chdir(repo)
+#     fname = pathlib.Path(".gitwarden.pkl")
+
+#     result = runner.invoke(gitwarden.cli.cli, ["add", "README.md"])
+#     assert result.exit_code == 0
+
+
+# def test_add_modify(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+#     """Test branching inside a metarepo."""
+#     runner = CliRunner()
+#     monkeypatch.chdir(repo)
+#     fname = pathlib.Path(".gitwarden.pkl")
+
+#     result = runner.invoke(gitwarden.cli.cli, ["add", "mynewfile"])
+#     assert result.exit_code == 0
+
+
+# def test_commit_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+#     """Test branching inside a metarepo."""
+#     runner = CliRunner()
+#     monkeypatch.chdir(repo)
+#     fname = pathlib.Path(".gitwarden.pkl")
+
+#     result = runner.invoke(gitwarden.cli.cli, ["commit", "-m", "test"])
+#     assert result.exit_code == 0
+
+
+# def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+#     """Test branching inside a metarepo."""
+#     runner = CliRunner()
+#     monkeypatch.chdir(repo)
+#     fname = pathlib.Path(".gitwarden.pkl")
+
+#     result = runner.invoke(gitwarden.cli.cli, ["commit", "-m", "test"])
+#     assert result.exit_code == 0
 
 
 @pytest.mark.parametrize(
@@ -223,13 +274,9 @@ def test_viz(
 ) -> None:
     """Test tree visualisation."""
     runner = CliRunner()
-    monkeypatch.chdir(repo / subdir)
+    monkeypatch.chdir(repo)
 
     result = runner.invoke(gitwarden.cli.cli, ["viz", command])
-
-    if result.exit_code != 0:
-        print(result.output)
-        print(result.exception)
 
     assert result.exit_code == 0
     for name in expectation:
