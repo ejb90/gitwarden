@@ -120,6 +120,53 @@ def checkout(ctx: click.Context, name: str) -> None:
 
 
 @cli.command()
+@click.argument(
+    "fnames",
+    nargs=-1,
+    type=str,
+)
+@click.pass_context
+def add(ctx: click.Context, fnames: tuple) -> None:
+    """Add files to staging area for each in each Project repository in the hierarchy recursively.
+
+    Arguments:
+        ctx (click.Context):                Top level CLI flags.
+        fnames (tuple):                     Files to add.
+
+    Returns:
+        None
+    """
+    group = load_cfg(ctx.obj["cfg"])
+
+    [output.TABLE.add_column(c) for c in ["Name", "Branch", "Files"]]
+    group.recursive_command("add", fnames=fnames)
+
+
+@cli.command()
+@click.option(
+    "-m",
+    "--message",
+    type=str,
+)
+@click.pass_context
+def commit(ctx: click.Context, message: str) -> None:
+    """Add commit staged changes for each in each Project repository in the hierarchy recursively.
+
+    Arguments:
+        ctx (click.Context):                Top level CLI flags.
+        message (str):                      Commit message.
+
+    Returns:
+        None
+    """
+    group = load_cfg(ctx.obj["cfg"])
+
+    [output.TABLE.add_column(c) for c in ["Name", "Branch", "Files", "Message"]]
+    group.recursive_command("commit", message=message)
+
+
+# =====================================================================================================================
+@cli.command()
 @click.pass_context
 @click.argument(
     "viz_type",

@@ -116,15 +116,23 @@ class GitlabGroup(GitlabInstance):
         else:
             output.PROGRESS_TOTAL.update(output.TASK_TOTAL, description=self.name)
         for project in self.projects:
+            project.rows = []
             if hasattr(project, command):
                 getattr(project, command)(**kwargs)
-                output.TABLE.add_row(*project.row)
+                for row in project.rows:
+                    output.TABLE.add_row(*row)
                 output.PROGRESS_TOTAL.update(output.TASK_TOTAL, description=project.name)
                 output.PROGRESS_TOTAL.advance(output.TASK_TOTAL)
-                output.LIVE.update(
-                    rich.console.Group(output.TABLE, output.PROGRESS_PROJECT, output.PROGRESS_TOTAL),
-                    refresh=True,
-                )
+                if command == "clone":
+                    output.LIVE.update(
+                        rich.console.Group(output.TABLE, output.PROGRESS_PROJECT, output.PROGRESS_TOTAL),
+                        refresh=True,
+                    )
+                else:
+                    output.LIVE.update(
+                        rich.console.Group(output.TABLE),
+                        refresh=True,
+                    )
             else:
                 raise Exception(f'Command "{command}" not recognised.')
 
@@ -147,7 +155,7 @@ class GitlabProject(GitlabInstance):
     project: typing.Any
     name: str = ""
     git: typing.Any | None = None
-    row: str = ""
+    rows: list = Field(default_factory=list)
 
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
@@ -170,13 +178,15 @@ class GitlabProject(GitlabInstance):
         self.git = git.Repo.clone_from(self.project.ssh_url_to_repo, self.path, progress=output.CloneProgress())
         self.name = pathlib.Path(self.git.working_tree_dir).name
 
-        self.row = [
-            self.name,
-            str(self.path.relative_to(self.root)),
-            self.git.git.rev_parse("--abbrev-ref", "HEAD"),
-            str(self.path.relative_to(self.root)),
-            self.git.remote(name="origin").url,
-        ]
+        self.rows.append(
+            [
+                self.name,
+                str(self.path.relative_to(self.root)),
+                self.git.git.rev_parse("--abbrev-ref", "HEAD"),
+                str(self.path.relative_to(self.root)),
+                self.git.remote(name="origin").url,
+            ]   
+        )
 
     def branch(self, name: str | None = None) -> None:
         """Make branch in a repository.
@@ -188,12 +198,14 @@ class GitlabProject(GitlabInstance):
             raise Exception(f'Cannot find repository @ "{self.path}"')
         self.git = git.Repo(self.path)
 
-        self.row = [
-            self.name,
-            str(self.path.relative_to(self.root)),
-            self.git.git.rev_parse("--abbrev-ref", "HEAD"),
-            name,
-        ]
+        self.rows.append(
+            [
+                self.name,
+                str(self.path.relative_to(self.root)),
+                self.git.git.rev_parse("--abbrev-ref", "HEAD"),
+                name,
+            ]
+        )
         self.git.create_head(name)
 
     def checkout(self, name: str | None = None) -> None:
@@ -206,10 +218,55 @@ class GitlabProject(GitlabInstance):
             raise Exception(f'Cannot find repository @ "{self.path}"')
         self.git = git.Repo(self.path)
 
-        self.row = [
-            self.name,
-            str(self.path.relative_to(self.root)),
-            self.git.git.rev_parse("--abbrev-ref", "HEAD"),
-            name,
-        ]
+        self.rows.append(
+            [
+                self.name,
+                str(self.path.relative_to(self.root)),
+                self.git.git.rev_parse("--abbrev-ref", "HEAD"),
+                name,
+            ]
+        )
         self.git.heads[name].checkout()
+
+    def add(self, fnames: tuple) -> None:
+        """Add files to staging area.
+        
+        Returns:
+            None
+        """
+        for fname in fnames:
+            fname = pathlib.Path(fname).resolve()
+            if fname.is_relative_to(self.path):
+                rel_path = str(fname.relative_to(self.path))
+                if rel_path in self.git.untracked_files or rel_path in [d.a_path for d in self.git.index.diff(None)]:
+
+                    self.git.index.add([fname.relative_to(self.path),])
+
+                    self.rows.append(
+                        [
+                            self.name,
+                            self.git.git.rev_parse("--abbrev-ref", "HEAD"),
+                            str(fname),
+                        ]
+                    )
+    
+    def commit(self, message: str) -> None:
+        """Add files to staging area.
+        
+        Returns:
+            None
+        """
+        staged = self.git.index.diff(None)
+        fnames = [d.a_path for d in staged]
+        if fnames:
+            self.git.index.commit(message)
+
+            for fname in fnames:
+                self.rows.append(
+                    [
+                        self.name,
+                        self.git.git.rev_parse("--abbrev-ref", "HEAD"),
+                        str(fname),
+                        message,
+                    ]
+                )
