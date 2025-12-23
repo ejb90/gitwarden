@@ -1,7 +1,6 @@
 """Test cloning functionality."""
 
 import pathlib
-import shutil
 
 import git
 import pytest
@@ -75,7 +74,7 @@ def test_branch(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
     runner = CliRunner()
     monkeypatch.chdir(repo)
     fname = pathlib.Path(".gitwarden.pkl")
-    
+
     result = runner.invoke(gitwarden.cli.cli, ["branch", "test"])
 
     assert result.exit_code == 0
@@ -269,9 +268,7 @@ def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         ),
     ],
 )
-def test_viz(
-    monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path, command: str, subdir: str, expectation: list[str]
-) -> None:
+def test_viz(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path, command: str, expectation: list[str]) -> None:
     """Test tree visualisation."""
     runner = CliRunner()
     monkeypatch.chdir(repo)

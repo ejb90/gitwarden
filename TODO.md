@@ -3,7 +3,7 @@
 1. Basic git commands
     * [x] clone    - Clone a repository into a new directory                                 
     * [] init      - Create an empty Git repository or reinitialize an existing one
-    * [] add       - Add file contents to the index
+    * [x] add       - Add file contents to the index
     * [] mv        - Move or rename a file, a directory, or a symlink
     * [] restore   - Restore working tree files
     * [] rm        - Remove files from the working tree and from the index
@@ -14,7 +14,7 @@
     * [] show      - Show various types of objects
     * [] status    - Show the working tree status
     * [x] branch   - List, create, or delete branches                                        
-    * [] commit    - Record changes to the repository
+    * [x] commit    - Record changes to the repository
     * [] merge     - Join two or more development histories together
     * [] rebase    - Reapply commits on top of another base tip
     * [] reset     - Reset current HEAD to the specified state
