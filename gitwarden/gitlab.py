@@ -28,8 +28,8 @@ class GitlabInstance(BaseModel):
     gitlab_url: str = "https://gitlab.com"
     gitlab_key: str = os.environ.get("GITLAB_API_KEY", "")
     server: typing.Any | None = None
-    root: pathlib.Path = pathlib.Path().resolve()
-    path: pathlib.Path = pathlib.Path().resolve()
+    root: pathlib.Path = pathlib.Path()  # .resolve()
+    path: pathlib.Path = pathlib.Path()  # .resolve()
 
 
 class GitlabGroup(GitlabInstance):
@@ -50,7 +50,7 @@ class GitlabGroup(GitlabInstance):
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
         self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
-        self.root = self.root.resolve()
+        self.root = self.root  # .resolve()
         self.group = self.server.groups.get(self.fullname)
         self.path = self.root / self.fullname.replace(os.sep, "-") if self.flat else self.root / self.fullname
         self.build()
@@ -235,7 +235,7 @@ class GitlabProject(GitlabInstance):
             None
         """
         for fname in fnames:
-            fname = pathlib.Path(fname).resolve()
+            fname = pathlib.Path(fname)  # .resolve()
             if fname.is_relative_to(self.path):
                 rel_path = str(fname.relative_to(self.path))
                 if rel_path in self.git.untracked_files or rel_path in [d.a_path for d in self.git.index.diff(None)]:

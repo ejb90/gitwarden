@@ -123,11 +123,17 @@ def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
 
 # def test_add_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
 #     """Test branching inside a metarepo."""
+#     import shutil
 #     runner = CliRunner()
-#     monkeypatch.chdir(repo)
+#     shutil.copytree(repo, tmp_path / repo.name)
+#     monkeypatch.chdir(tmp_path / repo.name)
 #     fname = pathlib.Path(".gitwarden.pkl")
 
 #     result = runner.invoke(gitwarden.cli.cli, ["add", "mynewfile"])
+
+#     print(result.output)
+#     print(result.exception)
+
 #     assert result.exit_code == 0
 
 
@@ -268,10 +274,12 @@ def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         ),
     ],
 )
-def test_viz(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path, command: str, expectation: list[str]) -> None:
+def test_viz(
+    monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path, command: str, subdir: str, expectation: list[str]
+) -> None:
     """Test tree visualisation."""
     runner = CliRunner()
-    monkeypatch.chdir(repo)
+    monkeypatch.chdir(repo / subdir)
 
     result = runner.invoke(gitwarden.cli.cli, ["viz", command])
 
