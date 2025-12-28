@@ -222,11 +222,16 @@ def load_cfg(cfg: pathlib.Path | None) -> gitlab.GitlabGroup | gitlab.GitlabProj
                     break
             else:
                 raise Exception(f'No gitwarden configuration file "{gitlab.GROUP_FNAME}" found up to root.')
+    elif isinstance(cfg, pathlib.Path):
+        if not cfg.is_file():
+            raise Exception(f'The provided gitwarden configuration file "{cfg}" does not exist.')
     else:
-        raise Exception(f'The provided gitwarden configuration file "{cfg}" does not exist.')
+        raise TypeError("Expected pathlib.Path or None for `cfg`.")
 
     with open(cfg, "rb") as fobj:
         group = pickle.load(fobj)
+        group.rebuild(cfg)
+
     # Now down-select to the subgroup/project in the pwd
     grp = find_subgroup(group)
     return grp

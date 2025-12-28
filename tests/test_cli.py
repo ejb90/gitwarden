@@ -1,6 +1,7 @@
 """Test cloning functionality."""
 
 import pathlib
+import shutil
 
 import git
 import pytest
@@ -14,9 +15,6 @@ def test_clone_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -
     runner = CliRunner()
     monkeypatch.chdir(tmp_path)
     result = runner.invoke(gitwarden.cli.cli, ["clone", "ejb90-group"])
-
-    print(result.output)
-    print(result.exception)
 
     dname = tmp_path / "ejb90-group"
     fname = dname / ".gitwarden.pkl"
@@ -121,50 +119,168 @@ def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         assert git_obj.active_branch.name == "test"
 
 
-# def test_add_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
-#     """Test branching inside a metarepo."""
-#     import shutil
-#     runner = CliRunner()
-#     shutil.copytree(repo, tmp_path / repo.name)
-#     monkeypatch.chdir(tmp_path / repo.name)
-#     fname = pathlib.Path(".gitwarden.pkl")
+def test_add_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+    """Test adding nothing inside a metarepo."""
+    runner = CliRunner()
+    shutil.copytree(repo, tmp_path / repo.name)
+    monkeypatch.chdir(tmp_path / repo.name)
 
-#     result = runner.invoke(gitwarden.cli.cli, ["add", "mynewfile"])
+    result = runner.invoke(gitwarden.cli.cli, ["add", "mynewfile"])
+    assert result.exit_code == 0
 
-#     print(result.output)
-#     print(result.exception)
-
-#     assert result.exit_code == 0
-
-
-# def test_add_modify(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
-#     """Test branching inside a metarepo."""
-#     runner = CliRunner()
-#     monkeypatch.chdir(repo)
-#     fname = pathlib.Path(".gitwarden.pkl")
-
-#     result = runner.invoke(gitwarden.cli.cli, ["add", "README.md"])
-#     assert result.exit_code == 0
+    for dname in (
+        "ejb90-project",
+        "models/model-a",
+        "models/model-b",
+        "models/model-c",
+        "models/subgroup-1/model-d",
+        "models/subgroup-1/model-e",
+    ):
+        git_obj = git.Repo(repo / dname)
+        assert (repo / dname).is_dir()
+        staged_diffs = git_obj.index.diff("HEAD")
+        assert not staged_diffs
 
 
-# def test_add_modify(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
-#     """Test branching inside a metarepo."""
-#     runner = CliRunner()
-#     monkeypatch.chdir(repo)
-#     fname = pathlib.Path(".gitwarden.pkl")
+def test_add_modify_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+    """Test adding a modified file inside a metarepo."""
+    runner = CliRunner()
+    repo2 = tmp_path / repo.name
 
-#     result = runner.invoke(gitwarden.cli.cli, ["add", "mynewfile"])
-#     assert result.exit_code == 0
+    shutil.copytree(repo, repo2)
+    monkeypatch.chdir(repo2)
+
+    fnames = []
+    for fname in pathlib.Path(repo2).rglob("**/README.md"):
+        with open(fname, "w") as fobj:
+            fobj.write("")
+            fnames.append(str(fname.relative_to(repo2)))
+
+    result = runner.invoke(
+        gitwarden.cli.cli,
+        ["add", *fnames],
+    )
+    assert result.exit_code == 0
+
+    for dname in (
+        "ejb90-project",
+        "models/model-a",
+        "models/model-b",
+        "models/model-c",
+        "models/subgroup-1/model-d",
+        "models/subgroup-1/model-e",
+    ):
+        git_obj = git.Repo(repo2 / dname)
+        assert (repo2 / dname).is_dir()
+        staged_diffs = git_obj.index.diff("HEAD")
+        staged_files = [diff.a_path for diff in staged_diffs]
+        assert "README.md" in staged_files
 
 
-# def test_commit_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
-#     """Test branching inside a metarepo."""
-#     runner = CliRunner()
-#     monkeypatch.chdir(repo)
-#     fname = pathlib.Path(".gitwarden.pkl")
+def test_add_modify_untracked_files(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path
+) -> None:
+    """Test adding a modified file inside a metarepo."""
+    runner = CliRunner()
+    repo2 = tmp_path / repo.name
 
-#     result = runner.invoke(gitwarden.cli.cli, ["commit", "-m", "test"])
-#     assert result.exit_code == 0
+    shutil.copytree(repo, repo2)
+    monkeypatch.chdir(repo2)
+
+    fnames = []
+    for fname in pathlib.Path(repo2).rglob("**/README.md"):
+        with open(fname, "w") as fobj:
+            fobj.write("")
+            fnames.append(str(fname.relative_to(repo2)))
+        with open(fname.parent / "test", "w") as fobj:
+            fobj.write("")
+
+    result = runner.invoke(
+        gitwarden.cli.cli,
+        ["add", *fnames],
+    )
+    assert result.exit_code == 0
+
+    for dname in (
+        "ejb90-project",
+        "models/model-a",
+        "models/model-b",
+        "models/model-c",
+        "models/subgroup-1/model-d",
+        "models/subgroup-1/model-e",
+    ):
+        git_obj = git.Repo(repo2 / dname)
+        assert (repo2 / dname).is_dir()
+        staged_diffs = git_obj.index.diff("HEAD")
+        staged_files = [diff.a_path for diff in staged_diffs]
+        assert "README.md" in staged_files
+        assert "test" not in staged_files
+
+
+def test_add_modify_new_files(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+    """Test adding a modified file inside a metarepo."""
+    runner = CliRunner()
+    repo2 = tmp_path / repo.name
+
+    shutil.copytree(repo, repo2)
+    monkeypatch.chdir(repo2)
+
+    fnames = []
+    for fname in pathlib.Path(repo2).rglob("**/README.md"):
+        with open(fname, "w") as fobj:
+            fobj.write("")
+            fnames.append(str(fname.relative_to(repo2)))
+        with open(fname.parent / "test", "w") as fobj:
+            fobj.write("")
+            fnames.append(str((fname.parent / "test").relative_to(repo2)))
+
+    result = runner.invoke(
+        gitwarden.cli.cli,
+        ["add", *fnames],
+    )
+    assert result.exit_code == 0
+
+    for dname in (
+        "ejb90-project",
+        "models/model-a",
+        "models/model-b",
+        "models/model-c",
+        "models/subgroup-1/model-d",
+        "models/subgroup-1/model-e",
+    ):
+        git_obj = git.Repo(repo2 / dname)
+        assert (repo2 / dname).is_dir()
+        staged_diffs = git_obj.index.diff("HEAD")
+        staged_files = [diff.a_path for diff in staged_diffs]
+        print([i.name for i in (repo2 / dname).iterdir()])
+        print(staged_files)
+        assert "README.md" in staged_files
+        assert "test" in staged_files
+
+
+def test_commit_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+    """Test commiting nothing inside a metarepo."""
+    runner = CliRunner()
+    repo2 = tmp_path / repo.name
+
+    shutil.copytree(repo, repo2)
+    monkeypatch.chdir(repo2)
+
+    result = runner.invoke(gitwarden.cli.cli, ["commit", "-m", "mynewfile"])
+    assert result.exit_code == 0
+
+    for dname in (
+        "ejb90-project",
+        "models/model-a",
+        "models/model-b",
+        "models/model-c",
+        "models/subgroup-1/model-d",
+        "models/subgroup-1/model-e",
+    ):
+        git_obj = git.Repo(repo / dname)
+        assert (repo / dname).is_dir()
+        staged_diffs = git_obj.index.diff("HEAD")
+        assert not staged_diffs
 
 
 # def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:

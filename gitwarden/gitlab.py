@@ -28,38 +28,8 @@ class GitlabInstance(BaseModel):
     gitlab_url: str = "https://gitlab.com"
     gitlab_key: str = os.environ.get("GITLAB_API_KEY", "")
     server: typing.Any | None = None
-    root: pathlib.Path = pathlib.Path()  # .resolve()
-    path: pathlib.Path = pathlib.Path()  # .resolve()
-
-
-class GitlabGroup(GitlabInstance):
-    """A Gitlab Group convenience class.
-
-    Attributes:
-        ...
-    """
-
-    name: str
-    fullname: str = ""
-    group: typing.Any | None = None
+    root: pathlib.Path = pathlib.Path().resolve()
     flat: bool = False
-    projects: list[str] = Field(default_factory=list)
-    subgroups: list[str] = Field(default_factory=list)
-    subgroup: bool = False
-
-    def model_post_init(self, __context: str | None = None) -> None:
-        """Post-init function calls."""
-        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
-        self.root = self.root  # .resolve()
-        self.group = self.server.groups.get(self.fullname)
-        self.path = self.root / self.fullname.replace(os.sep, "-") if self.flat else self.root / self.fullname
-        self.build()
-
-    @property
-    def members(self) -> list:
-        """Get members."""
-        self.group = self.server.groups.get(self.group.id)
-        return self.group.members_all.list(all=True)
 
     @property
     def toplevel_dir(self) -> pathlib.Path:
@@ -73,15 +43,63 @@ class GitlabGroup(GitlabInstance):
         else:
             return self.root / self.path.relative_to(self.root).parts[0]
 
+
+class GitlabGroup(GitlabInstance):
+    """A Gitlab Group convenience class.
+
+    Attributes:
+        ...
+    """
+
+    name: str
+    fullname: str = ""
+    group: typing.Any | None = None
+    projects: list[str] = Field(default_factory=list)
+    subgroups: list[str] = Field(default_factory=list)
+    subgroup: bool = False
+
+    def model_post_init(self, __context: str | None = None) -> None:
+        """Post-init function calls."""
+        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
+        self.root = self.root.resolve()
+        self.group = self.server.groups.get(self.fullname)
+        self.build()
+
+    @property
+    def path(self) -> pathlib.Path:
+        """Auto-generated path.
+
+        Returns:
+            pathlib.Path:       Project path.
+        """
+        return self.root / self.fullname.replace(os.sep, "-") if self.flat else self.root / self.fullname
+
+    # @path.setter
+    # def path(self, new_value):
+    #     self._path = pathlib.Path(new_value)
+
+    @property
+    def members(self) -> list:
+        """Get members.
+
+        Returns:
+            int:        Number of members.
+        """
+        self.group = self.server.groups.get(self.group.id)
+        return self.group.members_all.list(all=True)
+
     def build(self) -> None:
-        """Build each project object."""
+        """Build each project object.
+
+        Returns:
+            None
+        """
         # Loop through projects in the group, set up GitlabProject instance for the project
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
-            proj = GitlabProject(project=project, root=self.root)
-            if self.flat:
-                proj.path = self.path.parent / f"{self.path.name}-{project.path}"
-            else:
-                proj.path = self.path / project.path
+            proj = GitlabProject(project=project, root=self.root, flat=self.flat)
+            fullname = self.path.parent / f"{self.path.name}-{project.path}" if self.flat else self.path / project.path
+            fullname = str(fullname.relative_to(self.root))
+            proj.fullname = fullname
             self.projects.append(proj)
 
         # Loop through sub-groups in the group, set up GitlabGroup instance for the subgroup
@@ -97,6 +115,24 @@ class GitlabGroup(GitlabInstance):
             )
             self.subgroups.append(grp)
 
+    def rebuild(self, cfg: pathlib.Path) -> None:
+        """Rebuild the objects when reloaded (new directories, etc.).
+
+        Arguments:
+            cfg (pathlib.Path):         Serialised .pkl file.
+
+        Returns:
+            None
+        """
+        self.root = cfg.resolve().parent.parent
+        for project in self.projects:
+            project.root = self.root
+            project.git = git.Repo(project.path)
+
+        for group in self.subgroups:
+            group.root = self.root
+            group.rebuild(cfg)
+
     @property
     def count(self) -> int:
         """How many repositories are in the full group structure?
@@ -110,7 +146,15 @@ class GitlabGroup(GitlabInstance):
         return count
 
     def recursive_command(self, command: str, **kwargs: dict) -> None:
-        """Recursively walk down group tree, finding projects and executing commands."""
+        """Recursively walk down group tree, finding projects and executing commands.
+
+        Arguments:
+            command (str):      Command to execute.
+            kwargs (*):         Keyword args to each recursive command.
+
+        Returns:
+            None
+        """
         if not self.subgroup:
             output.PROGRESS_TOTAL.update(output.TASK_TOTAL, description=self.name, total=self.count)
         else:
@@ -156,6 +200,8 @@ class GitlabProject(GitlabInstance):
     name: str = ""
     git: typing.Any | None = None
     rows: list = Field(default_factory=list)
+    _path: pathlib.Path = pathlib.Path()
+    fullname: str = ""
 
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
@@ -164,8 +210,21 @@ class GitlabProject(GitlabInstance):
             self.path = pathlib.Path() / self.project.path
 
     @property
+    def path(self) -> pathlib.Path:
+        """Auto-generated path.
+
+        Returns:
+            pathlib.Path:       Project path.
+        """
+        return self.root / self.fullname
+
+    @property
     def members(self) -> list:
-        """Get members."""
+        """Get members.
+
+        Returns:
+            int:        Number of members.
+        """
         self.project = self.server.projects.get(self.project.id)
         return self.project.members_all.list(all=True)
 
@@ -181,7 +240,8 @@ class GitlabProject(GitlabInstance):
         self.rows.append(
             [
                 self.name,
-                str(self.path.relative_to(self.root)),
+                # str(self.path.relative_to(self.root)),
+                str(self.fullname),
                 self.git.git.rev_parse("--abbrev-ref", "HEAD"),
                 str(self.path.relative_to(self.root)),
                 self.git.remote(name="origin").url,
@@ -235,7 +295,7 @@ class GitlabProject(GitlabInstance):
             None
         """
         for fname in fnames:
-            fname = pathlib.Path(fname)  # .resolve()
+            fname = pathlib.Path(fname).resolve()
             if fname.is_relative_to(self.path):
                 rel_path = str(fname.relative_to(self.path))
                 if rel_path in self.git.untracked_files or rel_path in [d.a_path for d in self.git.index.diff(None)]:
