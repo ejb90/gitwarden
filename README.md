@@ -4,6 +4,7 @@
 [![Coverage](https://codecov.io/gh/ejb90/gitwarden/branch/main/graph/badge.svg)](https://codecov.io/gh/ejb90/gitwarden)
 [![License](https://img.shields.io/github/license/ejb90/gitwarden)](LICENSE)
 ![Ruff](https://img.shields.io/badge/code%20style-ruff-261230)
+[![Documentation](https://readthedocs.org/projects/gitwarden/badge/?version=latest)](https://gitwarden.readthedocs.io/en/latest/?badge=latest)
 
 <!-- ![Python](https://img.shields.io/pypi/pyversions/ejb90/gitwarden)
 [![PyPI](https://img.shields.io/pypi/v/myproject)](https://pypi.org/project/gitwarden/)
@@ -11,8 +12,9 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/gitwarden)](https://pypi.org/project/gitwarden/) -->
 
 
-
 `gitwarden` is a command-line tool and Python library for managing git operations over *nested GitLab groups* using the official GitLab Python API. It makes it easy to traverse complex group hierarchies, perform recursive git operations, without the need for submodule interdependencies, accessing only the sub-groups/projects for which the user has access.
+
+[Documentation](https://gitwarden.readthedocs.io/en/latest/).
 
 # Features
 
