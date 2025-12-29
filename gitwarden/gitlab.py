@@ -319,7 +319,7 @@ class GitlabProject(GitlabInstance):
         Returns:
             None
         """
-        staged = self.git.index.diff(None)
+        staged = self.git.index.diff("HEAD")
         fnames = [d.a_path for d in staged]
         if fnames:
             self.git.index.commit(message)

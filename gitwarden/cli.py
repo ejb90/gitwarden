@@ -219,12 +219,13 @@ def load_cfg(cfg: pathlib.Path | None) -> gitlab.GitlabGroup | gitlab.GitlabProj
             for parent in pathlib.Path().resolve().parents:
                 cfg = parent / gitlab.GROUP_FNAME
                 if cfg.is_file():
+                    print(cfg)
                     break
             else:
-                raise Exception(f'No gitwarden configuration file "{gitlab.GROUP_FNAME}" found up to root.')
+                raise FileNotFoundError(f'No gitwarden configuration file "{gitlab.GROUP_FNAME}" found up to root.')
     elif isinstance(cfg, pathlib.Path):
         if not cfg.is_file():
-            raise Exception(f'The provided gitwarden configuration file "{cfg}" does not exist.')
+            raise FileNotFoundError(f'The provided gitwarden configuration file "{cfg}" does not exist.')
     else:
         raise TypeError("Expected pathlib.Path or None for `cfg`.")
 
@@ -259,4 +260,4 @@ def find_subgroup(group: gitlab.GitlabGroup | gitlab.GitlabProject) -> gitlab.Gi
             return grp
         return find_subgroup(grp)
     else:
-        return None
+        return group
