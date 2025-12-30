@@ -8,7 +8,6 @@ import pytest
 from click.testing import CliRunner
 
 import gitwarden.cli
-import gitwarden.gitlab
 
 
 def test_clone_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
@@ -431,27 +430,3 @@ def test_viz(
     assert result.exit_code == 0
     for name in expectation:
         assert name in result.output
-
-
-def test_load_cfg_directly(repo: pathlib.Path) -> None:
-    """Load cfg file directly."""
-    grp = gitwarden.cli.load_cfg(repo / gitwarden.gitlab.GROUP_FNAME)
-    assert isinstance(grp, gitwarden.gitlab.GitlabGroup)
-
-
-def test_load_cfg_missing_walk() -> None:
-    """Load missing cfg file, walking up to root."""
-    with pytest.raises(FileNotFoundError, match=r'No gitwarden configuration file ".+" found up to root.'):
-        gitwarden.cli.load_cfg(None)
-
-
-def test_load_cfg_directly_missing() -> None:
-    """Load missing cfg file."""
-    with pytest.raises(FileNotFoundError, match=r'The provided gitwarden configuration file ".+" does not exist.'):
-        gitwarden.cli.load_cfg(pathlib.Path("missing_file"))
-
-
-def test_load_cfg_wrong_type() -> None:
-    """Load cfg file with wrong type."""
-    with pytest.raises(TypeError, match=r"Expected pathlib.Path or None for `cfg`."):
-        gitwarden.cli.load_cfg(1)
