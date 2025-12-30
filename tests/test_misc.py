@@ -1,4 +1,5 @@
 """Test misc functionality."""
+
 import pathlib
 
 import pytest

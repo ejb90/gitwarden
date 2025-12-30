@@ -333,34 +333,33 @@ class GitlabProject(GitlabInstance):
                         message,
                     ]
                 )
-    
-    def status(self):
+
+    def status(self) -> None:
         """Return git status.
-        
+
         Returns:
             None
         """
-        untracked = self.git.untracked_files 
+        untracked = self.git.untracked_files
         modified = [d.a_path for d in self.git.index.diff(None)]
         added = [d.a_path for d in self.git.index.diff("HEAD")]
-        
+
         for fname in sorted(added):
             entry = [self.fullname, fname, "Changes to be committed"]
-            entry = [f'[green]{string}[/]' for string in entry]
+            entry = [f"[green]{string}[/]" for string in entry]
             self.rows.append(entry)
         for fname in sorted(modified):
             entry = [self.fullname, fname, "Changes not staged for commit"]
-            entry = [f'[red]{string}[/]' for string in entry]
+            entry = [f"[red]{string}[/]" for string in entry]
             self.rows.append(entry)
         for fname in sorted(untracked):
             entry = [self.fullname, fname, "Untracked files"]
-            entry = [f'[magenta]{string}[/]' for string in entry]
+            entry = [f"[magenta]{string}[/]" for string in entry]
             self.rows.append(entry)
 
-
-    def push(self):
+    def push(self) -> None:
         """Push recursively.
-        
+
         Returns:
             None
         """
