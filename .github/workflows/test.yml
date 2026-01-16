@@ -56,28 +56,28 @@ jobs:
 
 
 
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+  # build:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: astral-sh/setup-uv@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: uv sync
-      - name: Build package
-        run: |
-          uv build
-      - name: Verify artifacts
-        run: |
-          ls -l dist/
+  #   steps:
+  #     - name: Check out repository
+  #       uses: actions/checkout@v4
+  #     - name: Set up Python ${{ matrix.python-version }}
+  #       uses: astral-sh/setup-uv@v3
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #     - name: Install dependencies
+  #       run: uv sync
+  #     - name: Build package
+  #       run: |
+  #         uv build
+  #     - name: Verify artifacts
+  #       run: |
+  #         ls -l dist/
 
 
 
@@ -100,10 +100,10 @@ jobs:
         run: |
           rm -rf dist/
           uv build
-          twine check dist/*
+          uv run twine check dist/*
 
       - name: Publish to PyPI
         # env:
           # PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          twine upload --repository testpypi dist/*
+          un run twine upload --repository testpypi dist/*
