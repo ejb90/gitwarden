@@ -22,7 +22,7 @@
     * [] tag       - Create, list, delete or verify a tag object signed with GPG
     * [] fetch     - Download objects and refs from another repository
     * [] pull      - Fetch from and integrate with another repository or a local branch
-    * [] push      - Update remote refs along with associated objects
+    * [x] push      - Update remote refs along with associated objects
     * [x] checkout - Checkout a branch                                                       
 
 2. Helpful commands
@@ -64,7 +64,7 @@ List of git commands, see `git --help`:
 * tag       Create, list, delete or verify a tag object signed with GPG
 * fetch     Download objects and refs from another repository
 * pull      Fetch from and integrate with another repository or a local branch
-* push      Update remote refs along with associated objects
+* push      Update remote refs along with associated objects                        DONE
 
 See:
 
