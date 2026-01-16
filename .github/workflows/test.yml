@@ -34,7 +34,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: uv sync
+      run: uv sync --extras dev
     - name: Lint with ruff
       run: uv run ruff check --diff
     - name: Format with ruff
@@ -71,7 +71,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --extras build
       - name: Build package
         run: |
           uv build
