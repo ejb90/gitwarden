@@ -21,9 +21,9 @@ with pyproject.open("rb") as f:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "gitwarden"
-copyright = "2025, ejb90"
-author = "ejb90"
-release = data.get("project", {}).get("version", "0.0.0")
+author = data.get("project", {}).get("name")
+copyright = f"2025, {author}"
+release = data.get("project", {}).get("name", "0.0.0")
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

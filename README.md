@@ -148,4 +148,4 @@ Contributions welcome — feel free to open issues or submit PRs.
 
 # License
 
-MIT License • © 2025
+MIT License • © 2026
