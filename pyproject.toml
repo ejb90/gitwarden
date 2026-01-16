@@ -30,8 +30,8 @@ dev = [
 gitwarden = "gitwarden.cli:cli"
 
 [build-system]
-# requires = ["setuptools>=64", "wheel"]
-# build-backend = "setuptools.build_meta"
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
