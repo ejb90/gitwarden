@@ -78,3 +78,32 @@ jobs:
       - name: Verify artifacts
         run: |
           ls -l dist/
+
+
+
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: astral-sh/setup-uv@v3
+        with:
+          python-version: 3.12
+
+      - name: Sync optional dependencies
+        run: uv sync --extra dev
+
+      - name: Build package
+        run: |
+          rm -rf dist/
+          uv build
+          twine check dist/*
+
+      - name: Publish to PyPI
+        # env:
+          # PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          twine upload --repository testpypi dist/*

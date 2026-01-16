@@ -1,6 +1,6 @@
 [project]
 name = "gitwarden"
-version = "0.1.0"
+version = "0.1.0rc2"
 description = "Manage nested git repositories in Gitlab seemlessly(ish)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -48,6 +48,11 @@ dev = [
 
 [project.scripts]
 gitwarden = "gitwarden.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/ejb90/gitwarden"
+Documentation = "https://gitwarden.readthedocs.io/"
+Tests = "https://app.codecov.io/gh/ejb90/gitwarden"
 
 [build-system]
 requires = ["setuptools>=64", "wheel"]
