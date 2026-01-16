@@ -1,0 +1,35 @@
+on:
+  push:
+    branches:
+      - main   # Run after PRs merged into main
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required to push tags
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Read version from pyproject.toml
+        id: read_version
+        run: |
+          VERSION=$(python -c "import tomllib; import pathlib; pyproject=pathlib.Path('pyproject.toml'); data=tomllib.loads(pyproject.read_text()); print(data['project']['version'])")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Version read from pyproject.toml: $VERSION"
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Create and push tag
+        run: |
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
