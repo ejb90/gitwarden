@@ -19,10 +19,6 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
-    permissions:
-      contents: read
-      id-token: write
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up SSH
@@ -87,6 +83,10 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
 
     steps:
       - name: Checkout repository
