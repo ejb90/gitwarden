@@ -4,10 +4,10 @@
 name: Test
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+ push:
+  branches: [ "**" ]
+ pull_request:
+   branches: [ "main" ]
 
 jobs:
   test:
@@ -33,7 +33,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: uv sync
+      run: uv sync --extra dev
     - name: Lint with ruff
       run: uv run ruff check --diff
     - name: Format with ruff
@@ -51,3 +51,26 @@ jobs:
       uses: codecov/test-results-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+  
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: uv sync
+      - name: Build package
+        run: |
+          uv build
+      - name: Verify artifacts
+        run: |
+          ls -l dist/

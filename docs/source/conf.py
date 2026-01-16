@@ -7,16 +7,23 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html
 import sys
 from pathlib import Path
 
+import tomllib
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+
+# -- Load information --------------------------------------------------------
+pyproject = Path().resolve().parent.parent / "pyproject.toml"
+with pyproject.open("rb") as f:
+    data = tomllib.load(f)
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "gitwarden"
-copyright = "2025, ejb90"
-author = "ejb90"
-release = "1.0.0"
+author = data.get("project", {}).get("name")
+copyright = f"2025, {author}"
+release = data.get("project", {}).get("name", "0.0.0")
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
