@@ -33,5 +33,6 @@ jobs:
         env:
           PAT: ${{ secrets.GH_PAT_PUSH }}
         run: |
+          git remote set-url origin https://x-access-token:$PAT@github.com/${GITHUB_REPOSITORY}.git
           git tag "v$VERSION"
           git push origin "v$VERSION"
