@@ -33,7 +33,7 @@ jobs:
 
       - name: Create and push tag
         env:
-          PAT: ${{ secrets.GH_PAT_PUSH }}
+          TAG_PAT: ${{ secrets.GH_PAT_PUSH }}
         run: |
           git remote set-url origin https://x-access-token:${TAG_PAT}@github.com/${GITHUB_REPOSITORY}.git          
           git tag "v$VERSION"
