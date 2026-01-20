@@ -3,7 +3,7 @@
 import pathlib
 import pickle
 
-from gitwarden import gitlab
+from gitconductor import gitlab
 
 
 def load_cfg(cfg: pathlib.Path | None) -> gitlab.GitlabGroup | gitlab.GitlabProject:
@@ -24,10 +24,10 @@ def load_cfg(cfg: pathlib.Path | None) -> gitlab.GitlabGroup | gitlab.GitlabProj
                     print(cfg)
                     break
             else:
-                raise FileNotFoundError(f'No gitwarden configuration file "{gitlab.GROUP_FNAME}" found up to root.')
+                raise FileNotFoundError(f'No gitconductor configuration file "{gitlab.GROUP_FNAME}" found up to root.')
     elif isinstance(cfg, pathlib.Path):
         if not cfg.is_file():
-            raise FileNotFoundError(f'The provided gitwarden configuration file "{cfg}" does not exist.')
+            raise FileNotFoundError(f'The provided gitconductor configuration file "{cfg}" does not exist.')
     else:
         raise TypeError("Expected pathlib.Path or None for `cfg`.")
 

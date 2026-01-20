@@ -20,7 +20,7 @@ with pyproject.open("rb") as f:
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "gitwarden"
+project = "gitconductor"
 author = data.get("project", {}).get("name")
 copyright = f"2025, {author}"
 release = data.get("project", {}).get("name", "0.0.0")

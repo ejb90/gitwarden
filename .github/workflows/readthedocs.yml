@@ -1,0 +1,15 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  trigger-rtd:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Read the Docs build
+        run: |
+          curl -X POST \
+            -H "Authorization: Token ${{ secrets.READTHEDOCS_API_KEY }}" \
+            https://readthedocs.org/api/v3/projects/gitconductor/versions/latest/builds/

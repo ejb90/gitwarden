@@ -4,7 +4,7 @@ import pathlib
 
 import pytest
 
-from gitwarden.gitlab import GitlabGroup
+from gitconductor.gitlab import GitlabGroup
 
 NAME = "ejb90-group"
 

@@ -1,37 +1,37 @@
-.. gitwarden package
+.. gitconductor package
 .. =================
 
 .. Submodules
 .. ----------
 
-gitwarden.cli module
+gitconductor.cli module
 --------------------
 
-.. automodule:: gitwarden.cli
+.. automodule:: gitconductor.cli
    :members:
    :show-inheritance:
    :undoc-members:
 
-gitwarden.gitlab module
+gitconductor.gitlab module
 -----------------------
 
-.. automodule:: gitwarden.gitlab
+.. automodule:: gitconductor.gitlab
    :members:
    :show-inheritance:
    :undoc-members:
 
-gitwarden.output module
+gitconductor.output module
 -----------------------
 
-.. automodule:: gitwarden.output
+.. automodule:: gitconductor.output
    :members:
    :show-inheritance:
    :undoc-members:
 
-gitwarden.visualise module
+gitconductor.visualise module
 --------------------------
 
-.. automodule:: gitwarden.visualise
+.. automodule:: gitconductor.visualise
    :members:
    :show-inheritance:
    :undoc-members:
@@ -39,7 +39,7 @@ gitwarden.visualise module
 Module contents
 ---------------
 
-.. automodule:: gitwarden
+.. automodule:: gitconductor
    :members:
    :show-inheritance:
    :undoc-members:
