@@ -13,9 +13,9 @@ import rich
 import rich.console
 from pydantic import BaseModel, Field
 
-from gitwarden import output
+from gitconductor import output
 
-GROUP_FNAME = pathlib.Path(".gitwarden.pkl")
+GROUP_FNAME = pathlib.Path(".gitconductor.pkl")
 
 
 class GitlabInstance(BaseModel):

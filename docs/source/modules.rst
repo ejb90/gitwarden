@@ -1,7 +1,7 @@
-gitwarden
-=========
+gitconductor
+============
 
 .. toctree::
    :maxdepth: 4
 
-   gitwarden
+   gitconductor

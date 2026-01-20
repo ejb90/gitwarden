@@ -1,20 +1,20 @@
-# gitwarden
+# gitconductor
 
-![tests](https://github.com/ejb90/gitwarden/actions/workflows/test.yml/badge.svg)
-[![Coverage](https://codecov.io/gh/ejb90/gitwarden/branch/main/graph/badge.svg)](https://codecov.io/gh/ejb90/gitwarden)
-[![License](https://img.shields.io/github/license/ejb90/gitwarden)](LICENSE)
+![tests](https://github.com/ejb90/gitconductor/actions/workflows/test.yml/badge.svg)
+[![Coverage](https://codecov.io/gh/ejb90/gitconductor/branch/main/graph/badge.svg)](https://codecov.io/gh/ejb90/gitconductor)
+[![License](https://img.shields.io/github/license/ejb90/gitconductor)](LICENSE)
 ![Ruff](https://img.shields.io/badge/code%20style-ruff-261230)
-[![Documentation](https://readthedocs.org/projects/gitwarden/badge/?version=latest)](https://gitwarden.readthedocs.io/en/latest/?badge=latest)
+[![Documentation](https://readthedocs.org/projects/gitconductor/badge/?version=latest)](https://gitconductor.readthedocs.io/en/latest/?badge=latest)
 
-<!-- ![Python](https://img.shields.io/pypi/pyversions/ejb90/gitwarden)
-[![PyPI](https://img.shields.io/pypi/v/myproject)](https://pypi.org/project/gitwarden/)
-[![PyPI version](https://img.shields.io/pypi/v/gitwarden)](https://pypi.org/project/gitwarden/)
-[![Python versions](https://img.shields.io/pypi/pyversions/gitwarden)](https://pypi.org/project/gitwarden/) -->
+<!-- ![Python](https://img.shields.io/pypi/pyversions/ejb90/gitconductor)
+[![PyPI](https://img.shields.io/pypi/v/myproject)](https://pypi.org/project/gitconductor/)
+[![PyPI version](https://img.shields.io/pypi/v/gitconductor)](https://pypi.org/project/gitconductor/)
+[![Python versions](https://img.shields.io/pypi/pyversions/gitconductor)](https://pypi.org/project/gitconductor/) -->
 
 
-`gitwarden` is a command-line tool and Python library for managing git operations over *nested GitLab groups* using the official GitLab Python API. It makes it easy to traverse complex group hierarchies, perform recursive git operations, without the need for submodule interdependencies, accessing only the sub-groups/projects for which the user has access.
+`gitconductor` is a command-line tool and Python library for managing git operations over *nested GitLab groups* using the official GitLab Python API. It makes it easy to traverse complex group hierarchies, perform recursive git operations, without the need for submodule interdependencies, accessing only the sub-groups/projects for which the user has access.
 
-[Documentation](https://gitwarden.readthedocs.io/en/latest/).
+[Documentation](https://gitconductor.readthedocs.io/en/latest/).
 
 # Features
 
@@ -27,7 +27,7 @@
 # Installation
 
 ```
-pip install gitwarden
+pip install gitconductor
 ```
 
 ## Configuration
@@ -37,7 +37,7 @@ pip install gitwarden
 Keys can be set up in two ways:
 
 1. Via an environment variable: `export GITLAB_API_KEY=<my-private-key>`
-2. Via the "gitwarden.yaml" file.
+2. Via the "gitconductor.yaml" file.
 
 # Usage (CLI)
 
@@ -46,19 +46,19 @@ Keys can be set up in two ways:
 To clone a Gitlab project at, for example, [https://gitlab.com/ejb90-group](https://gitlab.com/ejb90-group).
 
 ```
-gitwarden clone ejb90-group
+gitconductor clone ejb90-group
 ```
 
 ## Branch
 
 ```
-gitwarden branch <name>
+gitconductor branch <name>
 ```
 
 ## Checkout
 
 ```
-gitwarden checkout <name>
+gitconductor checkout <name>
 ```
 
 ## Pull
@@ -72,7 +72,7 @@ gitwarden checkout <name>
 To visualise the hierarchy of Groups/Projects as a Run, run:
 
 ```
-gitwarden viz tree
+gitconductor viz tree
 ```
 
 Results in:
@@ -93,7 +93,7 @@ ejb90-group
 To visualise the hierarchy of Groups/Projects as a Table, run:
 
 ```
-gitwarden viz table
+gitconductor viz table
 ```
 
 Results in:
@@ -115,7 +115,7 @@ Results in:
 To see who has access to a given hierarchy of Groups/Projects, run:
 
 ```
-gitwarden viz access
+gitconductor viz access
 ```
 
 Results in:

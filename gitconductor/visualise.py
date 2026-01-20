@@ -6,7 +6,7 @@ import rich.console
 import rich.table
 import rich.tree
 
-from gitwarden.gitlab import GitlabGroup, GitlabProject
+from gitconductor.gitlab import GitlabGroup, GitlabProject
 
 CODE_TO_ACCESS = {
     10: "Guest",

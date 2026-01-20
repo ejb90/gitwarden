@@ -1,5 +1,5 @@
 [project]
-name = "gitwarden"
+name = "gitconductor"
 version = "0.1.0rc8"
 description = "Manage nested git repositories in Gitlab seemlessly(ish)"
 readme = "README.md"
@@ -47,12 +47,13 @@ dev = [
 ]
 
 [project.scripts]
-gitwarden = "gitwarden.cli:cli"
+gitconductor = "gitconductor.cli:cli"
+gitc = "gitconductor.cli:cli"
 
 [project.urls]
-Homepage = "https://github.com/ejb90/gitwarden"
-Documentation = "https://gitwarden.readthedocs.io/"
-Tests = "https://app.codecov.io/gh/ejb90/gitwarden"
+Homepage = "https://github.com/ejb90/gitconductor"
+Documentation = "https://gitconductor.readthedocs.io/"
+Tests = "https://app.codecov.io/gh/ejb90/gitconductor"
 
 [build-system]
 requires = ["setuptools>=64", "wheel"]
@@ -117,7 +118,7 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--tb=short",
-    "--cov=gitwarden",
+    "--cov=gitconductor",
     "--cov-report=xml",
     "--cov-report=term",
     "--cov-report=html",

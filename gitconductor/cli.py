@@ -9,7 +9,7 @@ import pathlib
 import rich.tree
 import rich_click as click
 
-from gitwarden import gitlab, misc, output, visualise
+from gitconductor import gitlab, misc, output, visualise
 
 
 @click.group()

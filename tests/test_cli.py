@@ -7,17 +7,17 @@ import git
 import pytest
 from click.testing import CliRunner
 
-import gitwarden.cli
+import gitconductor.cli
 
 
 def test_clone_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
     """Basic clone."""
     runner = CliRunner()
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(gitwarden.cli.cli, ["clone", "ejb90-group"])
+    result = runner.invoke(gitconductor.cli.cli, ["clone", "ejb90-group"])
 
     dname = tmp_path / "ejb90-group"
-    fname = dname / ".gitwarden.pkl"
+    fname = dname / ".gitconductor.pkl"
 
     assert result.exit_code == 0
     assert dname.is_dir()
@@ -38,9 +38,9 @@ def test_clone_flat(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> 
     """Basic flat clone."""
     runner = CliRunner()
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(gitwarden.cli.cli, ["clone", "--flat", "ejb90-group"])
+    result = runner.invoke(gitconductor.cli.cli, ["clone", "--flat", "ejb90-group"])
 
-    fname = tmp_path / ".gitwarden.pkl"
+    fname = tmp_path / ".gitconductor.pkl"
 
     assert result.exit_code == 0
     assert fname.is_file()
@@ -60,7 +60,7 @@ def test_clone_limited_access(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib
     """Clone with access to one subproject, but not the other."""
     runner = CliRunner()
     monkeypatch.chdir(tmp_path)
-    runner.invoke(gitwarden.cli.cli, ["clone", "mobot-group"])
+    runner.invoke(gitconductor.cli.cli, ["clone", "mobot-group"])
 
     dname = tmp_path / "mobot-group"
     assert (dname / "access").is_dir()
@@ -71,9 +71,9 @@ def test_branch(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
     """Test branching inside a metarepo."""
     runner = CliRunner()
     monkeypatch.chdir(repo)
-    fname = pathlib.Path(".gitwarden.pkl")
+    fname = pathlib.Path(".gitconductor.pkl")
 
-    result = runner.invoke(gitwarden.cli.cli, ["branch", "test"])
+    result = runner.invoke(gitconductor.cli.cli, ["branch", "test"])
 
     assert result.exit_code == 0
     assert fname.is_file()
@@ -97,9 +97,9 @@ def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
     """Test branching inside a metarepo."""
     runner = CliRunner()
     monkeypatch.chdir(repo)
-    fname = pathlib.Path(".gitwarden.pkl")
+    fname = pathlib.Path(".gitconductor.pkl")
 
-    result = runner.invoke(gitwarden.cli.cli, ["checkout", "test"])
+    result = runner.invoke(gitconductor.cli.cli, ["checkout", "test"])
 
     assert result.exit_code == 0
     assert fname.is_file()
@@ -125,7 +125,7 @@ def test_add_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo:
     shutil.copytree(repo, tmp_path / repo.name)
     monkeypatch.chdir(tmp_path / repo.name)
 
-    result = runner.invoke(gitwarden.cli.cli, ["add", "mynewfile"])
+    result = runner.invoke(gitconductor.cli.cli, ["add", "mynewfile"])
     assert result.exit_code == 0
 
     for dname in (
@@ -157,7 +157,7 @@ def test_add_modify_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Pa
             fnames.append(str(fname.relative_to(repo2)))
 
     result = runner.invoke(
-        gitwarden.cli.cli,
+        gitconductor.cli.cli,
         ["add", *fnames],
     )
     assert result.exit_code == 0
@@ -196,7 +196,7 @@ def test_add_modify_untracked_files(
             fobj.write("")
 
     result = runner.invoke(
-        gitwarden.cli.cli,
+        gitconductor.cli.cli,
         ["add", *fnames],
     )
     assert result.exit_code == 0
@@ -235,7 +235,7 @@ def test_add_modify_new_files(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib
             fnames.append(str((fname.parent / "test").relative_to(repo2)))
 
     result = runner.invoke(
-        gitwarden.cli.cli,
+        gitconductor.cli.cli,
         ["add", *fnames],
     )
     assert result.exit_code == 0
@@ -266,7 +266,7 @@ def test_commit_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, re
     shutil.copytree(repo, repo2)
     monkeypatch.chdir(repo2)
 
-    result = runner.invoke(gitwarden.cli.cli, ["commit", "-m", "mynewfile"])
+    result = runner.invoke(gitconductor.cli.cli, ["commit", "-m", "mynewfile"])
     assert result.exit_code == 0
 
     for dname in (
@@ -298,11 +298,11 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
             fnames.append(str(fname.relative_to(repo2)))
 
     result = runner.invoke(
-        gitwarden.cli.cli,
+        gitconductor.cli.cli,
         ["add", *fnames],
     )
     result = runner.invoke(
-        gitwarden.cli.cli,
+        gitconductor.cli.cli,
         ["commit", "-m", "change"],
     )
     assert result.exit_code == 0
@@ -425,7 +425,7 @@ def test_viz(
     runner = CliRunner()
     monkeypatch.chdir(repo / subdir)
 
-    result = runner.invoke(gitwarden.cli.cli, ["viz", command])
+    result = runner.invoke(gitconductor.cli.cli, ["viz", command])
 
     assert result.exit_code == 0
     for name in expectation:

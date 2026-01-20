@@ -4,7 +4,7 @@ import pathlib
 
 import pytest
 
-from gitwarden import gitlab, misc
+from gitconductor import gitlab, misc
 
 
 def test_load_cfg_directly(repo: pathlib.Path) -> None:
@@ -15,13 +15,13 @@ def test_load_cfg_directly(repo: pathlib.Path) -> None:
 
 def test_load_cfg_missing_walk() -> None:
     """Load missing cfg file, walking up to root."""
-    with pytest.raises(FileNotFoundError, match=r'No gitwarden configuration file ".+" found up to root.'):
+    with pytest.raises(FileNotFoundError, match=r'No gitconductor configuration file ".+" found up to root.'):
         misc.load_cfg(None)
 
 
 def test_load_cfg_directly_missing() -> None:
     """Load missing cfg file."""
-    with pytest.raises(FileNotFoundError, match=r'The provided gitwarden configuration file ".+" does not exist.'):
+    with pytest.raises(FileNotFoundError, match=r'The provided gitconductor configuration file ".+" does not exist.'):
         misc.load_cfg(pathlib.Path("missing_file"))
 
 
