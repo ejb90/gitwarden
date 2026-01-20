@@ -1,8 +1,8 @@
 on:
   push:
     branches:
-      # - main   # Run after PRs merged into main
-      [ "**" ]
+      - main   # Run after PRs merged into main
+      # [ "**" ]
 
 jobs:
   tag:
