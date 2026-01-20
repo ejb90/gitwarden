@@ -33,4 +33,4 @@ jobs:
 
       - name: Publish to PyPI
         run: |
-          uv run twine upload --repository testpypi dist/*
+          uv run twine upload --repository pypi dist/*
