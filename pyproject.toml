@@ -1,6 +1,6 @@
 [project]
 name = "gitconductor"
-version = "0.1.0rc15"
+version = "0.1.0rc16"
 description = "Manage nested git repositories in Gitlab seemlessly(ish)"
 readme = "README.md"
 requires-python = ">=3.10"
