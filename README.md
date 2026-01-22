@@ -5,14 +5,11 @@
 [![License](https://img.shields.io/github/license/ejb90/gitconductor)](LICENSE)
 ![Ruff](https://img.shields.io/badge/code%20style-ruff-261230)
 [![Documentation](https://readthedocs.org/projects/gitconductor/badge/?version=latest)](https://gitconductor.readthedocs.io/en/latest/?badge=latest)
-
-<!-- ![Python](https://img.shields.io/pypi/pyversions/ejb90/gitconductor)
-[![PyPI](https://img.shields.io/pypi/v/myproject)](https://pypi.org/project/gitconductor/)
-[![PyPI version](https://img.shields.io/pypi/v/gitconductor)](https://pypi.org/project/gitconductor/)
-[![Python versions](https://img.shields.io/pypi/pyversions/gitconductor)](https://pypi.org/project/gitconductor/) -->
+[![PyPI](https://img.shields.io/pypi/v/gitconductor)](https://pypi.org/project/gitconductor/)
+[![Python versions](https://img.shields.io/pypi/pyversions/gitconductor)](https://pypi.org/project/gitconductor/)
 
 
-`gitconductor` is a command-line tool and Python library for managing git operations over *nested GitLab groups* using the official GitLab Python API. It makes it easy to traverse complex group hierarchies, perform recursive git operations, without the need for submodule interdependencies, accessing only the sub-groups/projects for which the user has access.
+`gitconductor` is a command-line tool and Python library for managing git operations over *nested GitLab groups* using the official [GitLab Python API](https://python-gitlab.readthedocs.io/en/stable/). It makes it easier to traverse complex group/sub-group hierarchies, perform recursive git operations, without the need for submodule interdependencies, accessing only the sub-groups/projects for which the user has access.
 
 [Documentation](https://gitconductor.readthedocs.io/en/latest/).
 
