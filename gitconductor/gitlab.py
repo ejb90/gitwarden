@@ -26,7 +26,7 @@ class GitlabInstance(BaseModel):
     """
 
     gitlab_url: str = "https://gitlab.com"
-    gitlab_key: str = os.environ.get("GITLAB_API_KEY", "")
+    gitlab_key: str
     server: typing.Any | None = None
     root: pathlib.Path = pathlib.Path().resolve()
     flat: bool = False
@@ -51,8 +51,10 @@ class GitlabGroup(GitlabInstance):
     Attributes:
         ...
     """
-
+       
     name: str
+    gitlab_key: str
+    gitlab_url: str = "https://gitlab.com"
     fullname: str = ""
     group: typing.Any | None = None
     projects: list[str] = Field(default_factory=list)
@@ -97,7 +99,7 @@ class GitlabGroup(GitlabInstance):
         """
         # Loop through projects in the group, set up GitlabProject instance for the project
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
-            proj = GitlabProject(project=project, root=self.root, flat=self.flat)
+            proj = GitlabProject(gitlab_url=self.gitlab_url, gitlab_key=self.gitlab_key, project=project, root=self.root, flat=self.flat)
             fullname = self.path.parent / f"{self.path.name}-{project.path}" if self.flat else self.path / project.path
             fullname = str(fullname.relative_to(self.root))
             proj.fullname = fullname
@@ -198,6 +200,8 @@ class GitlabProject(GitlabInstance):
     """A Gitlab Project convenience class."""
 
     project: typing.Any
+    gitlab_key: str
+    gitlab_url: str = "https://gitlab.com"
     name: str = ""
     git: typing.Any | None = None
     rows: list = Field(default_factory=list)
