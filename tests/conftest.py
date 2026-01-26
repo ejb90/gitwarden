@@ -1,5 +1,6 @@
 """Fixtures."""
 
+import os
 import pathlib
 
 import pytest
@@ -13,7 +14,12 @@ NAME = "ejb90-group"
 def group(tmp_path_factory: pytest.TempPathFactory) -> GitlabGroup:
     """GitlabGroup object."""
     tmp = tmp_path_factory.mktemp("repo")
-    return GitlabGroup(name=NAME, fullname=NAME, root=tmp)
+    return GitlabGroup(
+        gitlab_key=os.environ.get("GITCONDUCTOR_GITLAB_API_KEY", ""),
+        name=NAME, 
+        fullname=NAME, 
+        root=tmp
+    )
 
 
 @pytest.fixture(scope="session")
