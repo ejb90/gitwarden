@@ -11,6 +11,8 @@ class Settings(BaseModel):
     """Settings class."""
 
     cfg: pathlib.Path
+    gitconductor_gitlab_url: str = "https://gitlab.com"
+    gitconductor_gitlab_api_key: str = ""
 
     def model_post_init(self, context: typing.Any) -> None:  # noqa: ANN401
         """Post init hook to load cfg."""
