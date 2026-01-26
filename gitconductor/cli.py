@@ -9,32 +9,49 @@ import pathlib
 import rich.tree
 import rich_click as click
 
-from gitconductor import gitlab, misc, output, visualise
+from gitconductor import gitlab, misc, output, settings, visualise
 
 
 @click.group()
-@click.option("--gitlab-url", type=str, default="https://gitlab.com", required=False)
+@click.option(
+    "--gitlab-url",
+    type=str, 
+    default=os.environ.get("GITCONDUCTOR_URL", "https://gitlab.com"), 
+    required=False
+)
 @click.option(
     "--gitlab-key",
     type=str,
-    default=os.environ.get("GITLAB_API_KEY", ""),
+    default=os.environ.get("GITCONDUCTOR_GITLAB_API_KEY", ""),
     required=False,
 )
 @click.option(
     "--cfg",
     type=click.Path(path_type=pathlib.Path),
+    default=os.environ.get(
+        "GITCONDUCTOR_CONFIG", 
+        pathlib.Path().home() / ".config/gitconductor/gitconductor.yaml"
+    ),
+    required=False,
+)
+@click.option(
+    "--state",
+    type=click.Path(path_type=pathlib.Path),
     default=None,
     required=False,
 )
 @click.pass_context
-def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path) -> None:
+def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path, state: pathlib.Path) -> None:
     """Dummy for click."""
     ctx.ensure_object(dict)
-    ctx.obj["url"] = gitlab_url
-    ctx.obj["key"] = gitlab_key
+    cfg = settings.Settings(cfg=cfg) 
+    ctx.obj["url"] = gitlab_url if gitlab_url else cfg.gitconductor_gitlab_url
+    ctx.obj["key"] = gitlab_key if gitlab_key else cfg.gitconductor_gitlab_key
     ctx.obj["cfg"] = cfg
+    ctx.obj["state"] = state
 
 
+# =====================================================================================================================
 @cli.command()
 @click.argument("name")
 @click.argument(
@@ -66,6 +83,7 @@ def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool) ->
         name=name,
         flat=flat,
         root=directory,
+        cfg=ctx.obj["cfg"],
     )
     group.recursive_command("clone")
 
@@ -88,7 +106,7 @@ def branch(ctx: click.Context, name: str) -> None:
     Returns:
         None
     """
-    group = misc.load_cfg(ctx.obj["cfg"])
+    group = misc.load_cfg(ctx.obj["state"])
 
     [output.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
     group.recursive_command("branch", name=name)
@@ -112,7 +130,7 @@ def checkout(ctx: click.Context, name: str) -> None:
     Returns:
         None
     """
-    group = misc.load_cfg(ctx.obj["cfg"])
+    group = misc.load_cfg(ctx.obj["state"])
 
     [output.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
     group.recursive_command("checkout", name=name)
@@ -135,7 +153,7 @@ def add(ctx: click.Context, fnames: tuple) -> None:
     Returns:
         None
     """
-    group = misc.load_cfg(ctx.obj["cfg"])
+    group = misc.load_cfg(ctx.obj["state"])
 
     [output.TABLE.add_column(c) for c in ["Name", "Branch", "Files"]]
     group.recursive_command("add", fnames=fnames)
@@ -158,7 +176,7 @@ def commit(ctx: click.Context, message: str) -> None:
     Returns:
         None
     """
-    group = misc.load_cfg(ctx.obj["cfg"])
+    group = misc.load_cfg(ctx.obj["state"])
 
     [output.TABLE.add_column(c) for c in ["Name", "Branch", "Files", "Message"]]
     group.recursive_command("commit", message=message)
@@ -176,7 +194,7 @@ def status(ctx: click.Context) -> None:
     Returns:
         None
     """
-    group = misc.load_cfg(ctx.obj["cfg"])
+    group = misc.load_cfg(ctx.obj["state"])
 
     [output.TABLE.add_column(c) for c in ["Repository", "File", "Status"]]
     group.recursive_command("status")
@@ -194,7 +212,7 @@ def push(ctx: click.Context) -> None:
     Returns:
         None
     """
-    group = misc.load_cfg(ctx.obj["cfg"])
+    group = misc.load_cfg(ctx.obj["state"])
     group.recursive_command("push")
 
 
@@ -226,7 +244,7 @@ def viz(ctx: click.Context, viz_type: str, explicit: bool, maxdepth: int | None)
     Returns:
         None
     """
-    group = misc.load_cfg(ctx.obj["cfg"])
+    group = misc.load_cfg(ctx.obj["state"])
 
     rich.tree.Tree("Tree")
     if viz_type == "tree":

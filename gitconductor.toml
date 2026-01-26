@@ -1,0 +1,6 @@
+gitconductor_url = "https://gitlab.com"
+gitconductor_gitlab_api_key = ""
+gitconductor_config = ""
+
+[gitlab]
+verify_ssl = false

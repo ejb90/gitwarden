@@ -13,7 +13,7 @@ import rich
 import rich.console
 from pydantic import BaseModel, Field
 
-from gitconductor import output
+from gitconductor import output, settings
 
 GROUP_FNAME = pathlib.Path(".gitconductor.pkl")
 
@@ -30,6 +30,7 @@ class GitlabInstance(BaseModel):
     server: typing.Any | None = None
     root: pathlib.Path = pathlib.Path().resolve()
     flat: bool = False
+    cfg: settings.Settings | None = None
 
     @property
     def toplevel_dir(self) -> pathlib.Path:

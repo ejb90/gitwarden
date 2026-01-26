@@ -29,6 +29,12 @@ pip install gitconductor
 
 ## Configuration
 
+### Environment Variables
+
+* `GITCONDUCTOR_CONFIG`: Gitconductor configuration YAML file location.
+* `GITCONDUCTOR_GITLAB_API_KEY`: Gitlab Private Access Token.
+* `GITCONDUCTOR_GITLAB_URL`: Gitlab main URL.
+
 ### GitLab API Keys
 
 Keys can be set up in two ways:
