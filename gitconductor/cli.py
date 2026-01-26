@@ -14,10 +14,7 @@ from gitconductor import gitlab, misc, output, settings, visualise
 
 @click.group()
 @click.option(
-    "--gitlab-url",
-    type=str, 
-    default=os.environ.get("GITCONDUCTOR_URL", "https://gitlab.com"), 
-    required=False
+    "--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_URL", "https://gitlab.com"), required=False
 )
 @click.option(
     "--gitlab-key",
@@ -28,10 +25,7 @@ from gitconductor import gitlab, misc, output, settings, visualise
 @click.option(
     "--cfg",
     type=click.Path(path_type=pathlib.Path),
-    default=os.environ.get(
-        "GITCONDUCTOR_CONFIG", 
-        pathlib.Path().home() / ".config/gitconductor/gitconductor.yaml"
-    ),
+    default=os.environ.get("GITCONDUCTOR_CONFIG", pathlib.Path().home() / ".config/gitconductor/gitconductor.yaml"),
     required=False,
 )
 @click.option(
@@ -44,7 +38,7 @@ from gitconductor import gitlab, misc, output, settings, visualise
 def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path, state: pathlib.Path) -> None:
     """Dummy for click."""
     ctx.ensure_object(dict)
-    cfg = settings.Settings(cfg=cfg) 
+    cfg = settings.Settings(cfg=cfg)
     ctx.obj["url"] = gitlab_url if gitlab_url else cfg.gitconductor_gitlab_url
     ctx.obj["key"] = gitlab_key if gitlab_key else cfg.gitconductor_gitlab_key
     ctx.obj["cfg"] = cfg
