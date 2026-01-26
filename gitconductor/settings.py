@@ -14,7 +14,7 @@ class Settings(BaseModel):
     gitconductor_gitlab_url: str = "https://gitlab.com"
     gitconductor_gitlab_api_key: str = ""
 
-    def model_post_init(self, context: typing.Any) -> None:  # noqa: ANN401
+    def model_post_init(self, context: typing.Any) -> None: # noqa: ANN401
         """Post init hook to load cfg."""
         self.load()
         return super().model_post_init(context)
