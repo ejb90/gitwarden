@@ -40,7 +40,7 @@ jobs:
       run: uv run ruff format --diff
     - name: Test with pytest
       env:
-        GITLAB_API_KEY: ${{ secrets.GITLAB_API_KEY }}
+        GITCONDUCTOR_GITLAB_API_KEY: ${{ secrets.GITLAB_API_KEY }}
       run: uv run pytest --junitxml=junit.xml -o junit_family=legacy
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5

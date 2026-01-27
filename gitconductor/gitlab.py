@@ -13,7 +13,7 @@ import rich
 import rich.console
 from pydantic import BaseModel, Field
 
-from gitconductor import output
+from gitconductor import output, settings
 
 GROUP_FNAME = pathlib.Path(".gitconductor.pkl")
 
@@ -26,10 +26,11 @@ class GitlabInstance(BaseModel):
     """
 
     gitlab_url: str = "https://gitlab.com"
-    gitlab_key: str = os.environ.get("GITLAB_API_KEY", "")
+    gitlab_key: str
     server: typing.Any | None = None
     root: pathlib.Path = pathlib.Path().resolve()
     flat: bool = False
+    cfg: settings.Settings | None = None
 
     @property
     def toplevel_dir(self) -> pathlib.Path:
@@ -52,16 +53,21 @@ class GitlabGroup(GitlabInstance):
     """
 
     name: str
+    gitlab_key: str
+    gitlab_url: str = "https://gitlab.com"
     fullname: str = ""
     group: typing.Any | None = None
     projects: list[str] = Field(default_factory=list)
     subgroups: list[str] = Field(default_factory=list)
     subgroup: bool = False
+    cfg: settings.Settings | None = None
 
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
-        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
+        kwargs = self.cfg.gitlab if self.cfg else {}
+        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key, **kwargs)
         self.root = self.root.resolve()
+
         self.group = self.server.groups.get(self.fullname)
         self.build()
 
@@ -96,7 +102,14 @@ class GitlabGroup(GitlabInstance):
         """
         # Loop through projects in the group, set up GitlabProject instance for the project
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
-            proj = GitlabProject(project=project, root=self.root, flat=self.flat)
+            proj = GitlabProject(
+                gitlab_url=self.gitlab_url,
+                gitlab_key=self.gitlab_key,
+                project=project,
+                root=self.root,
+                flat=self.flat,
+                cfg=self.cfg,
+            )
             fullname = self.path.parent / f"{self.path.name}-{project.path}" if self.flat else self.path / project.path
             fullname = str(fullname.relative_to(self.root))
             proj.fullname = fullname
@@ -112,6 +125,7 @@ class GitlabGroup(GitlabInstance):
                 root=self.root,
                 flat=self.flat,
                 subgroup=True,
+                cfg=self.cfg,
             )
             self.subgroups.append(grp)
 
@@ -197,6 +211,8 @@ class GitlabProject(GitlabInstance):
     """A Gitlab Project convenience class."""
 
     project: typing.Any
+    gitlab_key: str
+    gitlab_url: str = "https://gitlab.com"
     name: str = ""
     git: typing.Any | None = None
     rows: list = Field(default_factory=list)
@@ -205,7 +221,8 @@ class GitlabProject(GitlabInstance):
 
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
-        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key)
+        kwargs = self.cfg.gitlab if self.cfg else {}
+        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key, **kwargs)
         if self.path is None:
             self.path = pathlib.Path() / self.project.path
 
