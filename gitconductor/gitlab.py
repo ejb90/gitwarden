@@ -64,8 +64,10 @@ class GitlabGroup(GitlabInstance):
 
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
-        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key,  **self.cfg.gitlab)
+        kwargs = self.cfg.gitlab if self.cfg else {}
+        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key,  **kwargs)
         self.root = self.root.resolve()
+
         self.group = self.server.groups.get(self.fullname)
         self.build()
 
@@ -214,7 +216,8 @@ class GitlabProject(GitlabInstance):
 
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
-        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key, **self.cfg.gitlab)
+        kwargs = self.cfg.gitlab if self.cfg else {}
+        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key, **kwargs)
         if self.path is None:
             self.path = pathlib.Path() / self.project.path
 
