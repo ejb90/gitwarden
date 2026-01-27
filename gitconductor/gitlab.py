@@ -65,7 +65,7 @@ class GitlabGroup(GitlabInstance):
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
         kwargs = self.cfg.gitlab if self.cfg else {}
-        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key,  **kwargs)
+        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key, **kwargs)
         self.root = self.root.resolve()
 
         self.group = self.server.groups.get(self.fullname)
@@ -103,7 +103,12 @@ class GitlabGroup(GitlabInstance):
         # Loop through projects in the group, set up GitlabProject instance for the project
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
             proj = GitlabProject(
-                gitlab_url=self.gitlab_url, gitlab_key=self.gitlab_key, project=project, root=self.root, flat=self.flat, cfg=self.cfg,
+                gitlab_url=self.gitlab_url,
+                gitlab_key=self.gitlab_key,
+                project=project,
+                root=self.root,
+                flat=self.flat,
+                cfg=self.cfg,
             )
             fullname = self.path.parent / f"{self.path.name}-{project.path}" if self.flat else self.path / project.path
             fullname = str(fullname.relative_to(self.root))
