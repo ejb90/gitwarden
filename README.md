@@ -31,7 +31,7 @@ pip install gitconductor
 
 ### Configuration file
 
-Gitconductor can store settings in a file. By default, this is at "~/.config/gitconductor/gitconductor.yaml". The location can be changed via the `GITCONDUCTOR_CONFIG` environment variable. Alternatively, a path can be passed via the top-level `--cfg` CLI argument.
+Gitconductor can store settings in a file. By default, this is at "~/.config/gitconductor/gitconductor.toml". The location can be changed via the `GITCONDUCTOR_CONFIG` environment variable. Alternatively, a path can be passed via the top-level `--cfg` CLI argument.
 
 ### Environment Variables
 
@@ -44,7 +44,7 @@ Gitconductor can store settings in a file. By default, this is at "~/.config/git
 Keys can be set up in two ways:
 
 1. Via an environment variable: `export GITCONDUCTOR_GITLAB_API_KEY=<my-private-key>`
-2. Via the "gitconductor.yaml" file in the `gitconductor_gitlab_api_key` variable.
+2. Via the "gitconductor.toml" file in the `gitconductor_gitlab_api_key` variable.
 
 # Usage (CLI)
 
