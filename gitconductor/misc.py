@@ -76,6 +76,7 @@ def readme_header() -> str:
     chunks = readme()
     header = [line for line in chunks.get("gitconductor", {}).splitlines() if line.strip()]
     header = [line for line in header if not line.strip().startswith("[![")]
+    header = [line for line in header if not line.strip().startswith("![")]
     header = "\n".join(header)
     return header
 
