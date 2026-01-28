@@ -1,9 +1,9 @@
 # gitconductor
 
-[![tests]](https://github.com/ejb90/gitconductor/actions/workflows/test.yml/badge.svg)
+![tests](https://github.com/ejb90/gitconductor/actions/workflows/test.yml/badge.svg)
 [![Coverage](https://codecov.io/gh/ejb90/gitconductor/branch/main/graph/badge.svg)](https://codecov.io/gh/ejb90/gitconductor)
 [![License](https://img.shields.io/github/license/ejb90/gitconductor)](LICENSE)
-[![Ruff]](https://img.shields.io/badge/code%20style-ruff-261230)
+![Ruff](https://img.shields.io/badge/code%20style-ruff-261230)
 [![Documentation](https://readthedocs.org/projects/gitconductor/badge/?version=latest)](https://gitconductor.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/gitconductor)](https://pypi.org/project/gitconductor/)
 [![Python versions](https://img.shields.io/pypi/pyversions/gitconductor)](https://pypi.org/project/gitconductor/)
