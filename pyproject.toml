@@ -59,6 +59,9 @@ Tests = "https://app.codecov.io/gh/ejb90/gitconductor"
 requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.package-data]
+gitconductor = ["_data/README.md"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 

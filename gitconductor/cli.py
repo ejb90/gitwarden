@@ -13,7 +13,7 @@ import rich_click as click
 
 from gitconductor import gitlab, misc, output, settings, visualise
 
-click.rich_click.USE_MARKDOWN = True
+click.rich_click.TEXT_MARKUP = True
 click.rich_click.MARKDOWN_SYNTAX = "commonmark"
 
 
@@ -262,8 +262,8 @@ def help(ctx: click.Context) -> None:
     """
     console = rich.console.Console()
     console.print(rich.markdown.Markdown(misc.readme_header()))
-    console.print(rich.markdown.Markdown(misc.readme_help()["Configuration"]))
+    console.print(rich.markdown.Markdown(misc.readme()["Configuration"]))
 
-    info = "\n".join(misc.readme_help()["Installation"].splitlines()[4:])
+    info = "\n".join(misc.readme()["Installation"].splitlines()[4:])
     console.print(rich.markdown.Markdown(info))
     print()
