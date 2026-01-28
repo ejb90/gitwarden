@@ -13,7 +13,7 @@ import rich_click as click
 
 from gitconductor import gitlab, misc, output, settings, visualise
 
-click.rich_click.TEXT_MARKUP = True
+click.rich_click.TEXT_MARKUP = "markdown"
 click.rich_click.MARKDOWN_SYNTAX = "commonmark"
 
 
