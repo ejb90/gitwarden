@@ -1,9 +1,9 @@
 """Miscellaneous."""
 
-from importlib.resources import files
 import pathlib
 import pickle
 import re
+from importlib.resources import files
 
 from gitconductor import gitlab
 
@@ -86,17 +86,11 @@ def readme() -> dict[str, str]:
     Returns:
         str:    README.md contents.
     """
-    help_str = (
-        files("gitconductor")
-        .joinpath("_data/README.md")
-        .read_text(encoding="utf-8")
-    )
+    help_str = files("gitconductor").joinpath("_data/README.md").read_text(encoding="utf-8")
     # readme_path = pathlib.Path(__file__).parent.parent / "README.md"
     # with open(readme_path, "r", encoding="utf-8") as fobj:
-        # help_str = fobj.read()
+    # help_str = fobj.read()
 
     chunks = re.split(r"(?<!#)#\s+", help_str)
     chunks = {chunk.splitlines()[0]: "\n".join(chunk.splitlines()[1:]) for chunk in chunks if chunk}
     return chunks
-    
-    

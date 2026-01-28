@@ -430,3 +430,22 @@ def test_viz(
     assert result.exit_code == 0
     for name in expectation:
         assert name in result.output
+
+
+def test_help() -> None:
+    """Test help string."""
+    runner = CliRunner()
+
+    result = runner.invoke(gitconductor.cli.cli, ["help"])
+
+    assert result.exit_code == 0
+    assert "is a command-line tool and Python library" in result.output
+
+
+def test_status(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
+    """Test status."""
+    runner = CliRunner()
+    monkeypatch.chdir(repo)
+
+    result = runner.invoke(gitconductor.cli.cli, ["status"])
+    assert result.exit_code == 0

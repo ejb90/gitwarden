@@ -18,9 +18,7 @@ click.rich_click.MARKDOWN_SYNTAX = "commonmark"
 
 
 @click.group(help=misc.readme_header())
-@click.option(
-    "--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_URL", None), required=False
-)
+@click.option("--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_URL", None), required=False)
 @click.option(
     "--gitlab-key",
     type=str,
@@ -255,11 +253,8 @@ def viz(ctx: click.Context, viz_type: str, explicit: bool, maxdepth: int | None)
 
 
 @cli.command()
-@click.pass_context
-def help(ctx: click.Context) -> None:
-    """
-    Print some generic help from README.md if docs aren't available.
-    """
+def help() -> None:
+    """Print some generic help from README.md if docs aren't available."""
     console = rich.console.Console()
     console.print(rich.markdown.Markdown(misc.readme_header()))
     console.print(rich.markdown.Markdown(misc.readme()["Configuration"]))
