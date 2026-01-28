@@ -2,6 +2,8 @@
 
 import pathlib
 import pickle
+import re
+from importlib.resources import files
 
 from gitconductor import gitlab
 
@@ -63,3 +65,32 @@ def find_subgroup(group: gitlab.GitlabGroup | gitlab.GitlabProject) -> gitlab.Gi
         return find_subgroup(grp)
     else:
         return group
+
+
+def readme_header() -> str:
+    """Read README.md for CLI help string.
+
+    Returns:
+        str:    README.md header contents.
+    """
+    chunks = readme()
+    header = [line for line in chunks.get("gitconductor", {}).splitlines() if line.strip()]
+    header = [line for line in header if not line.strip().startswith("[![")]
+    header = "\n".join(header)
+    return header
+
+
+def readme() -> dict[str, str]:
+    """Read README.md for CLI help string.
+
+    Returns:
+        str:    README.md contents.
+    """
+    help_str = files("gitconductor").joinpath("_data/README.md").read_text(encoding="utf-8")
+    # readme_path = pathlib.Path(__file__).parent.parent / "README.md"
+    # with open(readme_path, "r", encoding="utf-8") as fobj:
+    # help_str = fobj.read()
+
+    chunks = re.split(r"(?<!#)#\s+", help_str)
+    chunks = {chunk.splitlines()[0]: "\n".join(chunk.splitlines()[1:]) for chunk in chunks if chunk}
+    return chunks

@@ -29,3 +29,20 @@ def test_load_cfg_wrong_type() -> None:
     """Load cfg file with wrong type."""
     with pytest.raises(TypeError, match=r"Expected pathlib.Path or None for `cfg`."):
         misc.load_cfg(1)
+
+
+def test_readme() -> None:
+    """Test readme extraction."""
+    readme = misc.readme()
+    assert isinstance(readme, dict)
+    for key in (
+        "gitconductor",
+        "Features",
+        "Installation",
+        "Configuration",
+        "Usage (CLI)",
+        "Usage (Python API)",
+        "Development & Contributing",
+        "License",
+    ):
+        assert key in readme

@@ -1,9 +1,9 @@
 # gitconductor
 
-![tests](https://github.com/ejb90/gitconductor/actions/workflows/test.yml/badge.svg)
+[![tests]](https://github.com/ejb90/gitconductor/actions/workflows/test.yml/badge.svg)
 [![Coverage](https://codecov.io/gh/ejb90/gitconductor/branch/main/graph/badge.svg)](https://codecov.io/gh/ejb90/gitconductor)
 [![License](https://img.shields.io/github/license/ejb90/gitconductor)](LICENSE)
-![Ruff](https://img.shields.io/badge/code%20style-ruff-261230)
+[![Ruff]](https://img.shields.io/badge/code%20style-ruff-261230)
 [![Documentation](https://readthedocs.org/projects/gitconductor/badge/?version=latest)](https://gitconductor.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/gitconductor)](https://pypi.org/project/gitconductor/)
 [![Python versions](https://img.shields.io/pypi/pyversions/gitconductor)](https://pypi.org/project/gitconductor/)
@@ -27,19 +27,40 @@
 pip install gitconductor
 ```
 
-## Configuration
+## Gitlab Access
 
-### Configuration file
+Access to Gitlab is controlled via Personal Access Tokens. To generate:
+
+1. Login to Gitlab.
+2. Click to user icon.
+3. Click preferences in the drop down.
+4. Click "Personal access tokens" on the left side bar.
+5. Click the "Add new token" button in the top right.
+6. Give it a helpful name.
+7. Set the expiry date - for closed systems the longest permissable time of 1 year is easiest.
+8. Click the tick box for:
+    * read_user
+    * read_repository
+    * read_virtual_registry
+    * read_registry
+    * read_api
+    * self_rotate
+9. Click the "Generate token" button below.
+10. Copy the new token (noting it can't be viewed again after).
+
+# Configuration
+
+## Configuration file
 
 Gitconductor can store settings in a file. By default, this is at "~/.config/gitconductor/gitconductor.toml". The location can be changed via the `GITCONDUCTOR_CONFIG` environment variable. Alternatively, a path can be passed via the top-level `--cfg` CLI argument.
 
-### Environment Variables
+## Environment Variables
 
 * `GITCONDUCTOR_CONFIG`: Gitconductor configuration YAML file location.
 * `GITCONDUCTOR_GITLAB_API_KEY`: Gitlab Private Access Token.
 * `GITCONDUCTOR_GITLAB_URL`: Gitlab main URL.
 
-### GitLab API Keys
+## GitLab API Keys
 
 Keys can be set up in two ways:
 

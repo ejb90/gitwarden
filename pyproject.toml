@@ -1,6 +1,6 @@
 [project]
 name = "gitconductor"
-version = "0.2.0"
+version = "0.3.0"
 description = "Manage nested git repositories in Gitlab seemlessly(ish)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -58,6 +58,9 @@ Tests = "https://app.codecov.io/gh/ejb90/gitconductor"
 [build-system]
 requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+gitconductor = ["_data/README.md"]
 
 [tool.setuptools.packages.find]
 where = ["."]
