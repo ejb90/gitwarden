@@ -6,20 +6,25 @@ Interact with Gitlab via API.
 import os
 import pathlib
 
+import rich.console
+import rich.markdown
 import rich.tree
 import rich_click as click
 
 from gitconductor import gitlab, misc, output, settings, visualise
 
+click.rich_click.USE_MARKDOWN = True
+click.rich_click.MARKDOWN_SYNTAX = "commonmark"
 
-@click.group()
+
+@click.group(help=misc.readme_header())
 @click.option(
-    "--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_URL", "https://gitlab.com"), required=False
+    "--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_URL", None), required=False
 )
 @click.option(
     "--gitlab-key",
     type=str,
-    default=os.environ.get("GITCONDUCTOR_GITLAB_API_KEY", ""),
+    default=os.environ.get("GITCONDUCTOR_GITLAB_API_KEY", None),
     required=False,
 )
 @click.option(
@@ -247,3 +252,18 @@ def viz(ctx: click.Context, viz_type: str, explicit: bool, maxdepth: int | None)
         visualise.table(group, maxdepth=maxdepth)
     elif viz_type == "access":
         visualise.access(group, explicit=explicit, maxdepth=maxdepth)
+
+
+@cli.command()
+@click.pass_context
+def help(ctx: click.Context) -> None:
+    """
+    Print some generic help from README.md if docs aren't available.
+    """
+    console = rich.console.Console()
+    console.print(rich.markdown.Markdown(misc.readme_header()))
+    console.print(rich.markdown.Markdown(misc.readme_help()["Configuration"]))
+
+    info = "\n".join(misc.readme_help()["Installation"].splitlines()[4:])
+    console.print(rich.markdown.Markdown(info))
+    print()
