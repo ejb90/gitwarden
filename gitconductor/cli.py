@@ -1,7 +1,4 @@
-"""Main CLI arguments.
-
-Interact with Gitlab via API.
-"""
+"""Main CLI arguments."""
 
 import os
 import pathlib
@@ -11,7 +8,7 @@ import rich.markdown
 import rich.tree
 import rich_click as click
 
-from gitconductor import gitlab, misc, output, settings, visualise
+from gitconductor import misc, settings, visualise
 
 click.rich_click.TEXT_MARKUP = "markdown"
 click.rich_click.MARKDOWN_SYNTAX = "commonmark"
@@ -48,169 +45,10 @@ def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path,
     ctx.obj["state"] = state
 
 
-# =====================================================================================================================
-@cli.command()
-@click.argument("name")
-@click.argument(
-    "directory",
-    type=click.Path(path_type=pathlib.Path),
-    default=pathlib.Path(),
-    required=False,
-)
-@click.option("--flat", type=bool, is_flag=True, default=False)
-@click.pass_context
-def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool) -> None:
-    """Clone Gitlab (sub-)Group/Project repositories recursively.
-
-    Arguments:
-        ctx (click.Context):                Top level CLI flags.
-        name (str):                         Name of the Gitlab group to recursively clone.
-        directory (pathlib.Path, None):     Directory in which to clone repositories.
-        flat (bool):                        Flat directory structure?
-
-    Returns:
-        None
-    """
-    [output.TABLE.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
-
-    group = gitlab.GitlabGroup(
-        gitlab_url=ctx.obj["url"],
-        gitlab_key=ctx.obj["key"],
-        fullname=name,
-        name=name,
-        flat=flat,
-        root=directory,
-        cfg=ctx.obj["cfg"],
-    )
-    group.recursive_command("clone")
-
-
-@cli.command()
-@click.argument(
-    "name",
-    type=str,
-    default=None,
-    required=True,
-)
-@click.pass_context
-def branch(ctx: click.Context, name: str) -> None:
-    """Add a branch in each Project repository in the hierarchy recursively.
-
-    Arguments:
-        ctx (click.Context):                Top level CLI flags.
-        name (str):                         Name of the branch to checkout.
-
-    Returns:
-        None
-    """
-    group = misc.load_cfg(ctx.obj["state"])
-
-    [output.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
-    group.recursive_command("branch", name=name)
-
-
-@cli.command()
-@click.argument(
-    "name",
-    type=str,
-    default=None,
-    required=True,
-)
-@click.pass_context
-def checkout(ctx: click.Context, name: str) -> None:
-    """Checkout a branch in each Project repository in the hierarchy recursively.
-
-    Arguments:
-        ctx (click.Context):                Top level CLI flags.
-        name (str):                         Name of the branch to checkout.
-
-    Returns:
-        None
-    """
-    group = misc.load_cfg(ctx.obj["state"])
-
-    [output.TABLE.add_column(c) for c in ["Name", "Tree", "Old Branch", "New Branch"]]
-    group.recursive_command("checkout", name=name)
-
-
-@cli.command()
-@click.argument(
-    "fnames",
-    nargs=-1,
-    type=str,
-)
-@click.pass_context
-def add(ctx: click.Context, fnames: tuple) -> None:
-    """Add files to staging area in each Project repository in the hierarchy recursively.
-
-    Arguments:
-        ctx (click.Context):                Top level CLI flags.
-        fnames (tuple):                     Files to add.
-
-    Returns:
-        None
-    """
-    group = misc.load_cfg(ctx.obj["state"])
-
-    [output.TABLE.add_column(c) for c in ["Name", "Branch", "Files"]]
-    group.recursive_command("add", fnames=fnames)
-
-
-@cli.command()
-@click.option(
-    "-m",
-    "--message",
-    type=str,
-)
-@click.pass_context
-def commit(ctx: click.Context, message: str) -> None:
-    """Commit staged changes in each Project repository in the hierarchy recursively.
-
-    Arguments:
-        ctx (click.Context):                Top level CLI flags.
-        message (str):                      Commit message.
-
-    Returns:
-        None
-    """
-    group = misc.load_cfg(ctx.obj["state"])
-
-    [output.TABLE.add_column(c) for c in ["Name", "Branch", "Files", "Message"]]
-    group.recursive_command("commit", message=message)
-
-
-@cli.command()
-@click.pass_context
-def status(ctx: click.Context) -> None:
-    """Show status of each Project repository in the hierarchy recursively.
-
-    Arguments:
-        ctx (click.Context):                Top level CLI flags.
-        message (str):                      Commit message.
-
-    Returns:
-        None
-    """
-    group = misc.load_cfg(ctx.obj["state"])
-
-    [output.TABLE.add_column(c) for c in ["Repository", "File", "Status"]]
-    group.recursive_command("status")
-
-
-@cli.command()
-@click.pass_context
-def push(ctx: click.Context) -> None:
-    """Push each Project repository in the hierarchy recursively.
-
-    Arguments:
-        ctx (click.Context):                Top level CLI flags.
-        message (str):                      Commit message.
-
-    Returns:
-        None
-    """
-    group = misc.load_cfg(ctx.obj["state"])
-    group.recursive_command("push")
+# Hack to add submodules to the CLI without circular imports. 
+# This is required because the submodules need to import the main CLI group to add their own subcommands, but the main CLI 
+# group also needs to import the submodules to add them as subcommands.
+from . import cli_git, cli_python  # noqa: F401,E402
 
 
 # =====================================================================================================================
@@ -252,6 +90,7 @@ def viz(ctx: click.Context, viz_type: str, explicit: bool, maxdepth: int | None)
         visualise.access(group, explicit=explicit, maxdepth=maxdepth)
 
 
+# =====================================================================================================================
 @cli.command()
 def help() -> None:
     """Print some generic help from README.md if docs aren't available."""

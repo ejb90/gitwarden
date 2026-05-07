@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 class Settings(BaseModel):
     """Settings class."""
 
-    cfg: pathlib.Path
+    cfg: pathlib.Path | None = None
     gitconductor_gitlab_url: str = "https://gitlab.com"
     gitconductor_gitlab_api_key: str = ""
     gitconductor_config: str | None = None
@@ -23,8 +23,9 @@ class Settings(BaseModel):
 
     def load(self) -> None:
         """Load cfg."""
-        if self.cfg.is_file():
-            with open(self.cfg, "rb") as fobj:
-                raw_data = tomllib.load(fobj)
-                for key, val in raw_data.items():
-                    setattr(self, key, val)
+        if self.cfg:
+            if self.cfg.is_file():
+                with open(self.cfg, "rb") as fobj:
+                    raw_data = tomllib.load(fobj)
+                    for key, val in raw_data.items():
+                        setattr(self, key, val)

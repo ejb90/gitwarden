@@ -6,6 +6,7 @@ import os
 import pathlib
 import pickle
 import typing
+import tomllib
 
 import git
 import gitlab
@@ -51,7 +52,6 @@ class GitlabGroup(GitlabInstance):
     Attributes:
         ...
     """
-
     name: str
     gitlab_key: str
     gitlab_url: str = "https://gitlab.com"
@@ -79,10 +79,6 @@ class GitlabGroup(GitlabInstance):
             pathlib.Path:       Project path.
         """
         return self.root / self.fullname.replace(os.sep, "-") if self.flat else self.root / self.fullname
-
-    # @path.setter
-    # def path(self, new_value):
-    #     self._path = pathlib.Path(new_value)
 
     @property
     def members(self) -> list:
@@ -167,8 +163,9 @@ class GitlabGroup(GitlabInstance):
             kwargs (*):         Keyword args to each recursive command.
 
         Returns:
-            None
+            list:               List of returns from each command execution.
         """
+        returns = []
         if not self.subgroup:
             output.PROGRESS_TOTAL.update(output.TASK_TOTAL, description=self.name, total=self.count)
         else:
@@ -176,7 +173,7 @@ class GitlabGroup(GitlabInstance):
         for project in self.projects:
             project.rows = []
             if hasattr(project, command):
-                getattr(project, command)(**kwargs)
+                returns.append(getattr(project, command)(**kwargs))
                 for row in project.rows:
                     output.TABLE.add_row(*row)
                 output.PROGRESS_TOTAL.update(output.TASK_TOTAL, description=project.name)
@@ -195,11 +192,12 @@ class GitlabGroup(GitlabInstance):
                 raise Exception(f'Command "{command}" not recognised.')
 
         for subgroup in self.subgroups:
-            subgroup.recursive_command(command, **kwargs)
+            returns.extend(subgroup.recursive_command(command, **kwargs))
 
         if not self.subgroup:
             output.LIVE.update(rich.console.Group(output.TABLE), refresh=True)
         self.dump()
+        return returns
 
     def dump(self) -> None:
         """Dump to file."""
@@ -244,6 +242,50 @@ class GitlabProject(GitlabInstance):
         """
         self.project = self.server.projects.get(self.project.id)
         return self.project.members_all.list(all=True)
+    
+    @property
+    def is_python_package(self) -> bool:
+        """Is this project a Python package?
+
+        Returns:
+            bool:       Is this project a Python package?
+        """
+        return (self.path / "setup.py").exists() or (self.path / "pyproject.toml").exists()
+
+    @property
+    def python_package_name(self) -> str:
+        """What is the name of the Python package?
+
+        Returns:
+            str:        Name of the Python package.
+        """
+        if (self.path / "setup.py").exists():
+            with open(self.path / "setup.py", "r") as fobj:
+                for line in fobj:
+                    if line.strip().startswith("name="):
+                        return line.strip().split("name=")[1].split(",")[0].strip().strip('"').strip("'")
+        elif (self.path / "pyproject.toml").exists():
+            with open(self.path / "pyproject.toml", "rb") as fobj:
+                pyproject = tomllib.load(fobj)
+                return pyproject.get("project", {}).get("name", "")
+        else:
+            raise Exception(f'Cannot determine Python package name for project "{self.name}".')
+
+    def recursive_command(self, command: str, **kwargs: dict) -> None:
+        """Trick to execute a command recursively on a project to keep code the same elsewhere.
+
+        Arguments:
+            command (str):      Command to execute.
+            kwargs (*):         Keyword args to each recursive command.
+
+        Returns:
+            list:               List of returns from each command execution.
+        """
+        if hasattr(self, command):
+            return getattr(self, command)(**kwargs)
+        else:
+            raise Exception(f'Command "{command}" not recognised.')
+
 
     def clone(self) -> None:
         """Clone a repository.
@@ -361,6 +403,10 @@ class GitlabProject(GitlabInstance):
         modified = [d.a_path for d in self.git.index.diff(None)]
         added = [d.a_path for d in self.git.index.diff("HEAD")]
 
+        print(untracked)
+        print(modified)
+        print(added)
+
         for fname in sorted(added):
             entry = [self.fullname, fname, "Changes to be committed"]
             entry = [f"[green]{string}[/]" for string in entry]
@@ -381,3 +427,24 @@ class GitlabProject(GitlabInstance):
             None
         """
         self.git.remotes.origin.push()
+
+
+    def pyinstall(self, editable=False, index=None) -> None:
+        """Install Python package.
+
+        Returns:
+            None
+        """
+        
+        os.system(f"uv pip install {self.path}")
+
+    def pyreqs(self) -> None:
+        """Generate requirements.txt file for Python package.
+
+        Returns:
+            None
+        """
+        if self.is_python_package:
+            return f"{self.python_package_name} @ {self.git.remotes.origin.url}@{self.git.head.commit.hexsha}"
+        else:
+            return ""
