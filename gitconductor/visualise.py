@@ -221,7 +221,7 @@ def access_matrix(group: GitlabGroup, maxdepth: int | None = None) -> None:
             entry,
         ]
         for user in sorted(users):
-            access = next((r[2] for r in rows if r[0] == entry and r[1] == user), "[on white]")
+            access = next((r[2] for r in rows if r[0] == entry and r[1] == user), "white")
             block = f"[on {access[1:-1]}]{' ' * len(user)}"
             row.append(block)
 
