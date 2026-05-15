@@ -227,7 +227,7 @@ group.recursive_command("clone")
 
 # Development & Contributing
 
-Contributions welcome — feel free to open issues or submit PRs. See the CONTRIBUTING.md
+Contributions welcome — feel free to open issues or submit PRs. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 # License
 
