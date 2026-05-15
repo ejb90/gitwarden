@@ -87,18 +87,19 @@ def py_installer(ctx: click.Context, editable: bool, index: str | None, package_
     group.recursive_command("pyinstall", pm=package_manager, editable=editable, index=index)
 
 
-# @cli.command()
-# @click.pass_context
-# def py_wheeler(ctx: click.Context) -> None:
-#     """Install python packages in the cloned repository tree.
+@cli.command()
+@click.pass_context
+def py_wheeler(ctx: click.Context) -> None:
+    """Install python packages in the cloned repository tree.
 
-#     Arguments:
-#         ctx (click.Context):                Top level CLI flags.
+    Arguments:
+        ctx (click.Context):                Top level CLI flags.
 
-#     Returns:
-#         None
-#     """
-#     group = misc.load_cfg(ctx.obj["state"])
+    Returns:
+        None
+    """
+    # group = misc.load_cfg(ctx.obj["state"])
 
-#     # [output.TABLE.add_column(c) for c in ["Name", "Path"]]
-#     # group.recursive_command("pyinstall", editable=editable, index=index)
+    # [output.TABLE.add_column(c) for c in ["Name", "Path"]]
+    # group.recursive_command("pyinstall", editable=editable, index=index)
+    raise NotImplementedError("Wheel building is not implemented yet.")
