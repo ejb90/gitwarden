@@ -5,14 +5,15 @@ from __future__ import annotations
 import os
 import pathlib
 import pickle
-import typing
+import shlex
 import subprocess
-import tomllib
+import typing
 
 import git
 import gitlab
 import rich
 import rich.console
+import tomllib
 from pydantic import BaseModel, Field
 
 from gitconductor import output, settings
@@ -53,6 +54,7 @@ class GitlabGroup(GitlabInstance):
     Attributes:
         ...
     """
+
     name: str
     gitlab_key: str
     gitlab_url: str = "https://gitlab.com"
@@ -243,7 +245,7 @@ class GitlabProject(GitlabInstance):
         """
         self.project = self.server.projects.get(self.project.id)
         return self.project.members_all.list(all=True)
-    
+
     @property
     def is_python_package(self) -> bool:
         """Is this project a Python package?
@@ -261,7 +263,7 @@ class GitlabProject(GitlabInstance):
             str:        Name of the Python package.
         """
         if (self.path / "setup.py").exists():
-            with open(self.path / "setup.py", "r") as fobj:
+            with open(self.path / "setup.py") as fobj:
                 for line in fobj:
                     if line.strip().startswith("name="):
                         return line.strip().split("name=")[1].split(",")[0].strip().strip('"').strip("'")
@@ -286,7 +288,6 @@ class GitlabProject(GitlabInstance):
             return getattr(self, command)(**kwargs)
         else:
             raise Exception(f'Command "{command}" not recognised.')
-
 
     def clone(self) -> None:
         """Clone a repository.
@@ -425,18 +426,23 @@ class GitlabProject(GitlabInstance):
         """
         self.git.remotes.origin.push()
 
-
-    def pyinstall(self, pm: str = "uv pip", editable=False, index=None) -> None:
+    def pyinstall(self, pm: str = "uv pip", editable: bool = False, index: str | None = None) -> None:
         """Install Python package.
 
         Returns:
             None
         """
         if self.is_python_package:
-            cmd = f"{pm} install {'--editable' if editable else ''} {'--index' if index else ''} {self.path}"
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            cmd = [*shlex.split(pm), "install"]
+            if editable:
+                cmd.append("--editable")
+            if index:
+                cmd.extend(["--index", index])
+            cmd.append(str(self.path))
+
+            result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode:
-                raise Exception(f'Failed to install Python package at "{self.path}". Command: "{cmd}"')
+                raise Exception(f'Failed to install Python package at "{self.path}". Command: {" ".join(cmd)}')
             self.rows.append([self.python_package_name, str(self.path.relative_to(self.root))])
 
     def pyreqs(self) -> None:
@@ -452,9 +458,8 @@ class GitlabProject(GitlabInstance):
                     str(self.path.relative_to(self.root)),
                     self.python_package_name,
                 ]
-            ) 
+            )
             return f"{self.python_package_name} @ {self.git.remotes.origin.url}@{self.git.head.commit.hexsha}"
-  
+
         else:
             return ""
-

@@ -24,9 +24,8 @@ class Settings(BaseModel):
 
     def load(self) -> None:
         """Load cfg."""
-        if self.cfg:
-            if self.cfg.is_file():
-                with open(self.cfg, "rb") as fobj:
-                    raw_data = tomllib.load(fobj)
-                    for key, val in raw_data.items():
-                        setattr(self, key, val)
+        if self.cfg and self.cfg.is_file():
+            with open(self.cfg, "rb") as fobj:
+                raw_data = tomllib.load(fobj)
+                for key, val in raw_data.items():
+                    setattr(self, key, val)

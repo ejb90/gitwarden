@@ -45,9 +45,9 @@ def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path,
     ctx.obj["state"] = state
 
 
-# Hack to add submodules to the CLI without circular imports. 
-# This is required because the submodules need to import the main CLI group to add their own subcommands, but the main CLI 
-# group also needs to import the submodules to add them as subcommands.
+# Hack to add submodules to the CLI without circular imports.
+# This is required because the submodules need to import the main CLI group to add their own subcommands, but the main
+# CLI group also needs to import the submodules to add them as subcommands.
 from . import cli_git, cli_python  # noqa: F401,E402
 
 
@@ -98,6 +98,7 @@ def access_matrix(ctx: click.Context, explicit: bool, maxdepth: int | None) -> N
     """Visualise access recursively."""
     group = misc.load_cfg(ctx.obj["state"])
     visualise.access_matrix(group, explicit=explicit, maxdepth=maxdepth)
+
 
 # =====================================================================================================================
 @cli.command()

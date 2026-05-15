@@ -1,7 +1,6 @@
 """Test git functionality via CLI."""
 
 from pathlib import Path
-import shutil
 
 import git
 import pytest
@@ -40,7 +39,7 @@ def test_clone_flat() -> None:
     runner = CliRunner()
     result = runner.invoke(gitconductor.cli.cli, ["clone", "--flat", "ejb90-group"])
 
-    fname = Path(".gitconductor.pkl")   
+    fname = Path(".gitconductor.pkl")
 
     assert result.exit_code == 0
     assert fname.is_file()
@@ -54,7 +53,6 @@ def test_clone_flat() -> None:
         "ejb90-group-models-subgroup-1-model-e",
     ):
         assert Path(dname).is_dir()
-
 
 
 @pytest.mark.tmp_path
@@ -125,7 +123,7 @@ def test_add_none(repo: Path) -> None:
     """Test adding nothing inside a metarepo."""
     runner = CliRunner()
     result = runner.invoke(gitconductor.cli.cli, ["add", "mynewfile"])
-    
+
     assert result.exit_code == 0
     for dname in (
         "ejb90-project",
@@ -180,7 +178,7 @@ def test_add_modify_untracked_files() -> None:
     """Test adding a modified file inside a metarepo."""
     runner = CliRunner()
     root = Path().resolve()
-    
+
     fnames = []
     for fname in root.rglob("**/README.md"):
         with open(fname, "w") as fobj:
@@ -252,7 +250,7 @@ def test_add_modify_new_files() -> None:
 def test_commit_none() -> None:
     """Test commiting nothing inside a metarepo."""
     runner = CliRunner()
-    root = Path().resolve() 
+    root = Path().resolve()
 
     result = runner.invoke(gitconductor.cli.cli, ["commit", "-m", "mynewfile"])
     assert result.exit_code == 0
@@ -275,7 +273,7 @@ def test_commit_none() -> None:
 def test_commit_change() -> None:
     """Test commiting a change inside a metarepo."""
     runner = CliRunner()
-    root =  Path().resolve()
+    root = Path().resolve()
 
     fnames = []
     for fname in Path(root).rglob("**/README.md"):
@@ -425,7 +423,6 @@ def test_status() -> None:
     assert result.exit_code == 0
 
 
-
 @pytest.mark.fresh_repo_path
 def test_status_unstaged(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test status."""
@@ -433,14 +430,14 @@ def test_status_unstaged(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir("ejb90-project")
     with open("README.md", "w") as fobj:
         fobj.write("Hello, World!")
-    
+
     runner = CliRunner()
     result = runner.invoke(gitconductor.cli.cli, ["status"])
     assert result.exit_code == 0
 
 
 @pytest.mark.fresh_repo_path
-def test_status_staged(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_status_unstaged_staged(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test status."""
     # Modify file
     monkeypatch.chdir("ejb90-project")

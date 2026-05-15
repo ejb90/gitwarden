@@ -4,12 +4,14 @@
 2. py-requirements: Generate requirements.txt files for python packages in the cloned repository tree.
 3. py-wheeler: Build wheels for python packages in the cloned repository tree.
 """
+
 import logging
 import pathlib
 
-import click 
+import click
 
 from gitconductor import misc, output
+
 from .cli import cli
 
 
@@ -26,6 +28,7 @@ def py_requirements(ctx: click.Context, fname: pathlib.Path | None, pyproject: b
         fname (pathlib.Path | None):        Path to the requirements.txt file. (default: requirements.txt)
         pyproject (bool):                   Generate pyproject.toml file instead of requirements.txt.
         force (bool):                       Force overwrite of existing file.
+
     Returns:
         None
     """
@@ -34,10 +37,7 @@ def py_requirements(ctx: click.Context, fname: pathlib.Path | None, pyproject: b
     reqs = group.recursive_command("pyreqs")
 
     if fname is None:
-        if pyproject:
-            fname = pathlib.Path("pyproject.toml")
-        else: 
-            fname = pathlib.Path("requirements.txt")
+        fname = pathlib.Path("pyproject.toml") if pyproject else pathlib.Path("requirements.txt")
 
     if fname.is_file() and not force:
         logging.warning(f"File already exists: {fname}. Use --force to overwrite.")
@@ -54,14 +54,14 @@ def py_requirements(ctx: click.Context, fname: pathlib.Path | None, pyproject: b
         with open(fname, "w") as fobj:
             # pyproject style
             if pyproject:
-                fobj.write('dependencies = [\n')
+                fobj.write("dependencies = [\n")
                 for req in reqs:
                     fobj.write(f'    "{req}",\n')
                 fobj.write("]\n")
             # requirements.txt style
-            else:   
+            else:
                 for req in reqs:
-                    fobj.write(req + "\n")  
+                    fobj.write(req + "\n")
 
 
 @cli.command()
@@ -76,7 +76,8 @@ def py_installer(ctx: click.Context, editable: bool, index: str | None, package_
         ctx (click.Context):                Top level CLI flags.
         editable (bool):                    Install in editable mode?
         index (str | None):                 Index URL to use for installation.
-    
+        package_manager (str):              Package manager to use for installation (default: "uv pip").
+
     Returns:
         None
     """
@@ -86,18 +87,18 @@ def py_installer(ctx: click.Context, editable: bool, index: str | None, package_
     group.recursive_command("pyinstall", pm=package_manager, editable=editable, index=index)
 
 
-@cli.command()
-@click.pass_context
-def py_wheeler(ctx: click.Context) -> None:
-    """Install python packages in the cloned repository tree.
+# @cli.command()
+# @click.pass_context
+# def py_wheeler(ctx: click.Context) -> None:
+#     """Install python packages in the cloned repository tree.
 
-    Arguments:
-        ctx (click.Context):                Top level CLI flags.
-    
-    Returns:
-        None
-    """
-    group = misc.load_cfg(ctx.obj["state"])
+#     Arguments:
+#         ctx (click.Context):                Top level CLI flags.
 
-    # [output.TABLE.add_column(c) for c in ["Name", "Path"]]
-    # group.recursive_command("pyinstall", editable=editable, index=index)
+#     Returns:
+#         None
+#     """
+#     group = misc.load_cfg(ctx.obj["state"])
+
+#     # [output.TABLE.add_column(c) for c in ["Name", "Path"]]
+#     # group.recursive_command("pyinstall", editable=editable, index=index)

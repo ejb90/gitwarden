@@ -50,13 +50,13 @@ def test_readme() -> None:
 
 def test_settings() -> None:
     """Test settings."""
-    cfg = settings.Settings()
+    settings.Settings()
 
 
 def test_settings_file_full() -> None:
     """Test settings."""
     cfg = settings.Settings(cfg=Path("gitconductor.toml"))
-    assert cfg.gitlab.get("ssl_verify") == False
+    assert not cfg.gitlab.get("ssl_verify")
 
 
 @pytest.mark.tmp_path
@@ -65,4 +65,4 @@ def test_settings_file_partial() -> None:
     with open("gitconductor.toml", "w") as fobj:
         fobj.write("[gitlab]\nssl_verify = false\n")
     cfg = settings.Settings(cfg=Path("gitconductor.toml"))
-    assert cfg.gitlab.get("ssl_verify") == False
+    assert not cfg.gitlab.get("ssl_verify")
