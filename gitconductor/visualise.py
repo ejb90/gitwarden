@@ -175,3 +175,25 @@ def access(group: GitlabGroup, explicit: bool = False, maxdepth: int | None = No
         table.add_row(*row)
     console = rich.console.Console()
     console.print(table, crop=True)
+
+
+def access_matrix(group: GitlabGroup, explicit: bool = False, maxdepth: int | None = None) -> None:
+    """Make a access matrix visualisation.
+
+    Args:
+        group (gitlab.GitlabGroup):     Gitlab group instance.
+        explicit (bool):                Explicitly show all members of all groups/projects?
+        maxdepth (int):                 Maximum recursion depth (0=PWD).
+
+    Returns:
+        None
+    """
+    table = rich.table.Table()
+    rows, columns = build_access(group, explicit=True, maxdepth=maxdepth, root=group.path)
+    print(rows)
+    [table.add_column(c) for c in columns]
+    for row in rows:
+        table.add_row(*row)
+    console = rich.console.Console()
+    console.print(table, crop=True)
+

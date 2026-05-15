@@ -6,6 +6,7 @@ import os
 import pathlib
 import pickle
 import typing
+import subprocess
 import tomllib
 
 import git
@@ -403,10 +404,6 @@ class GitlabProject(GitlabInstance):
         modified = [d.a_path for d in self.git.index.diff(None)]
         added = [d.a_path for d in self.git.index.diff("HEAD")]
 
-        print(untracked)
-        print(modified)
-        print(added)
-
         for fname in sorted(added):
             entry = [self.fullname, fname, "Changes to be committed"]
             entry = [f"[green]{string}[/]" for string in entry]
@@ -429,14 +426,18 @@ class GitlabProject(GitlabInstance):
         self.git.remotes.origin.push()
 
 
-    def pyinstall(self, editable=False, index=None) -> None:
+    def pyinstall(self, pm: str = "uv pip", editable=False, index=None) -> None:
         """Install Python package.
 
         Returns:
             None
         """
-        
-        os.system(f"uv pip install {self.path}")
+        if self.is_python_package:
+            cmd = f"{pm} install {'--editable' if editable else ''} {'--index' if index else ''} {self.path}"
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            if result.returncode:
+                raise Exception(f'Failed to install Python package at "{self.path}". Command: "{cmd}"')
+            self.rows.append([self.python_package_name, str(self.path.relative_to(self.root))])
 
     def pyreqs(self) -> None:
         """Generate requirements.txt file for Python package.
@@ -445,6 +446,15 @@ class GitlabProject(GitlabInstance):
             None
         """
         if self.is_python_package:
+            self.rows.append(
+                [
+                    self.name,
+                    str(self.path.relative_to(self.root)),
+                    self.python_package_name,
+                ]
+            ) 
             return f"{self.python_package_name} @ {self.git.remotes.origin.url}@{self.git.head.commit.hexsha}"
+  
         else:
             return ""
+

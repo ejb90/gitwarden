@@ -15,6 +15,7 @@ class Settings(BaseModel):
     gitconductor_gitlab_api_key: str = ""
     gitconductor_config: str | None = None
     gitlab: dict = Field(default_factory=dict)
+    pypi_remote: str = "https://pypi.org/simple"
 
     def model_post_init(self, context: typing.Any) -> None:  # noqa: ANN401
         """Post init hook to load cfg."""

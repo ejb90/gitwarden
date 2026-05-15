@@ -52,43 +52,52 @@ from . import cli_git, cli_python  # noqa: F401,E402
 
 
 # =====================================================================================================================
-@cli.command()
+@cli.group()
 @click.pass_context
-@click.argument(
-    "viz_type",
-    type=click.Choice(["tree", "table", "access"]),
-    required=True,
-)
+def viz(ctx: click.Context) -> None:
+    """Visualise the hierarchy recursively in different ways."""
+    pass
+
+
+@viz.command()
+@click.pass_context
+def tree(ctx: click.Context) -> None:
+    """Visualise the hierarchy as a tree."""
+    group = misc.load_cfg(ctx.obj["state"])
+    visualise.tree(group)
+
+
+@viz.command()
+@click.pass_context
+@click.option("--maxdepth", type=int, default=None, help="Maximum recursion depth to traverse for output.")
+def table(ctx: click.Context, maxdepth: int | None) -> None:
+    """Visualise the hierarchy as a table."""
+    group = misc.load_cfg(ctx.obj["state"])
+    visualise.table(group, maxdepth=maxdepth)
+
+
+@viz.command()
+@click.pass_context
 @click.option(
     "--explicit",
-    type=bool,
     is_flag=True,
     default=False,
     help="Explicitly show each individual user for each sub-Group and Project.",
 )
 @click.option("--maxdepth", type=int, default=None, help="Maximum recursion depth to traverse for output.")
-def viz(ctx: click.Context, viz_type: str, explicit: bool, maxdepth: int | None) -> None:
-    """Visualise the hierarchy recursively in different ways.
-
-    Arguments:
-        ctx (click.Context):                Top level CLI flags.
-        viz_type (str):                     Visualisation type.
-        explicit (bool):                    Show all info for all projects/groups.
-        maxdepth (int):                     Maximum recursion depth (0=PWD).
-
-    Returns:
-        None
-    """
+def access(ctx: click.Context, explicit: bool, maxdepth: int | None) -> None:
+    """Visualise access recursively."""
     group = misc.load_cfg(ctx.obj["state"])
+    visualise.access(group, explicit=explicit, maxdepth=maxdepth)
 
-    rich.tree.Tree("Tree")
-    if viz_type == "tree":
-        visualise.tree(group)
-    elif viz_type == "table":
-        visualise.table(group, maxdepth=maxdepth)
-    elif viz_type == "access":
-        visualise.access(group, explicit=explicit, maxdepth=maxdepth)
 
+@viz.command()
+@click.pass_context
+@click.option("--maxdepth", type=int, default=None, help="Maximum recursion depth to traverse for output.")
+def access_matrix(ctx: click.Context, explicit: bool, maxdepth: int | None) -> None:
+    """Visualise access recursively."""
+    group = misc.load_cfg(ctx.obj["state"])
+    visualise.access_matrix(group, explicit=explicit, maxdepth=maxdepth)
 
 # =====================================================================================================================
 @cli.command()

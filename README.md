@@ -36,17 +36,16 @@ Access to Gitlab is controlled via Personal Access Tokens. To generate:
 3. Click preferences in the drop down.
 4. Click "Personal access tokens" on the left side bar.
 5. Click the "Add new token" button in the top right.
-6. Give it a helpful name.
-7. Set the expiry date - for closed systems the longest permissable time of 1 year is easiest.
-8. Click the tick box for:
+6. Select "legacy".
+7. Give it a helpful name.
+8. Set the expiry date - for closed systems the longest permissable time of 1 year is easiest.
+9. Click the tick box for:
     * read_user
     * read_repository
-    * read_virtual_registry
-    * read_registry
     * read_api
-    * self_rotate
-9. Click the "Generate token" button below.
-10. Copy the new token (noting it can't be viewed again after).
+    * write_repository
+10. Click the "Generate token" button below.
+11. Copy the new token (noting it can't be viewed again after).
 
 # Configuration
 
@@ -157,6 +156,16 @@ Results in:
 └────────────────────┴───────┴──────────────┴──────────────┴────────┘
 ```
 
+## Python
+
+Gitconductor has several recursive python functions which combine with python repositories. These include:
+
+### Requirements
+
+This generates a requirements list, similar to `pip freeze` with each package's associated git url.
+```
+gitconductor py-requirements
+```
 
 # Usage (Python API)
 

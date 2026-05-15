@@ -30,6 +30,7 @@ def py_requirements(ctx: click.Context, fname: pathlib.Path | None, pyproject: b
         None
     """
     group = misc.load_cfg(ctx.obj["state"])
+    [output.TABLE.add_column(c) for c in ["Name", " Path", "Package Name"]]
     reqs = group.recursive_command("pyreqs")
 
     if fname is None:
@@ -65,9 +66,10 @@ def py_requirements(ctx: click.Context, fname: pathlib.Path | None, pyproject: b
 
 @cli.command()
 @click.pass_context
+@click.option("--package-manager", type=str, default="uv pip")
 @click.option("-e", "--editable", type=bool, is_flag=True, default=False)
 @click.option("--index", type=str, default=None)
-def py_installer(ctx: click.Context, editable: bool, index: str | None) -> None:
+def py_installer(ctx: click.Context, editable: bool, index: str | None, package_manager: str = "uv pip") -> None:
     """Install python packages in the cloned repository tree.
 
     Arguments:
@@ -80,8 +82,8 @@ def py_installer(ctx: click.Context, editable: bool, index: str | None) -> None:
     """
     group = misc.load_cfg(ctx.obj["state"])
 
-    # [output.TABLE.add_column(c) for c in ["Name", "Path"]]
-    # group.recursive_command("pyinstall", editable=editable, index=index)
+    [output.TABLE.add_column(c) for c in ["Name", "Path"]]
+    group.recursive_command("pyinstall", pm=package_manager, editable=editable, index=index)
 
 
 @cli.command()
