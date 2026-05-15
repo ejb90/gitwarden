@@ -1,7 +1,6 @@
-"""Test cloning functionality."""
+"""Test git functionality via CLI."""
 
-import pathlib
-import shutil
+from pathlib import Path
 
 import git
 import pytest
@@ -10,13 +9,13 @@ from click.testing import CliRunner
 import gitconductor.cli
 
 
-def test_clone_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+@pytest.mark.tmp_path
+def test_clone_simple() -> None:
     """Basic clone."""
     runner = CliRunner()
-    monkeypatch.chdir(tmp_path)
     result = runner.invoke(gitconductor.cli.cli, ["clone", "ejb90-group"])
 
-    dname = tmp_path / "ejb90-group"
+    dname = Path("ejb90-group")
     fname = dname / ".gitconductor.pkl"
 
     assert result.exit_code == 0
@@ -34,13 +33,13 @@ def test_clone_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -
         assert (dname / dname2).is_dir()
 
 
-def test_clone_flat(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+@pytest.mark.tmp_path
+def test_clone_flat() -> None:
     """Basic flat clone."""
     runner = CliRunner()
-    monkeypatch.chdir(tmp_path)
     result = runner.invoke(gitconductor.cli.cli, ["clone", "--flat", "ejb90-group"])
 
-    fname = tmp_path / ".gitconductor.pkl"
+    fname = Path(".gitconductor.pkl")
 
     assert result.exit_code == 0
     assert fname.is_file()
@@ -53,25 +52,25 @@ def test_clone_flat(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> 
         "ejb90-group-models-subgroup-1-model-d",
         "ejb90-group-models-subgroup-1-model-e",
     ):
-        assert (tmp_path / dname).is_dir()
+        assert Path(dname).is_dir()
 
 
-def test_clone_limited_access(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path) -> None:
+@pytest.mark.tmp_path
+def test_clone_limited_access() -> None:
     """Clone with access to one subproject, but not the other."""
     runner = CliRunner()
-    monkeypatch.chdir(tmp_path)
     runner.invoke(gitconductor.cli.cli, ["clone", "mobot-group"])
 
-    dname = tmp_path / "mobot-group"
+    dname = Path("mobot-group")
     assert (dname / "access").is_dir()
     assert not (dname / "no-access").is_dir()
 
 
-def test_branch(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
+@pytest.mark.repo_path
+def test_branch(repo: Path) -> None:
     """Test branching inside a metarepo."""
     runner = CliRunner()
-    monkeypatch.chdir(repo)
-    fname = pathlib.Path(".gitconductor.pkl")
+    fname = Path(".gitconductor.pkl")
 
     result = runner.invoke(gitconductor.cli.cli, ["branch", "test"])
 
@@ -93,11 +92,11 @@ def test_branch(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         assert git_obj.active_branch.name == "main"
 
 
-def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
+@pytest.mark.repo_path
+def test_checkout(repo: Path) -> None:
     """Test branching inside a metarepo."""
     runner = CliRunner()
-    monkeypatch.chdir(repo)
-    fname = pathlib.Path(".gitconductor.pkl")
+    fname = Path(".gitconductor.pkl")
 
     result = runner.invoke(gitconductor.cli.cli, ["checkout", "test"])
 
@@ -119,15 +118,13 @@ def test_checkout(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
         assert git_obj.active_branch.name == "test"
 
 
-def test_add_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+@pytest.mark.fresh_repo_path
+def test_add_none(repo: Path) -> None:
     """Test adding nothing inside a metarepo."""
     runner = CliRunner()
-    shutil.copytree(repo, tmp_path / repo.name)
-    monkeypatch.chdir(tmp_path / repo.name)
-
     result = runner.invoke(gitconductor.cli.cli, ["add", "mynewfile"])
-    assert result.exit_code == 0
 
+    assert result.exit_code == 0
     for dname in (
         "ejb90-project",
         "models/model-a",
@@ -136,25 +133,24 @@ def test_add_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo:
         "models/subgroup-1/model-d",
         "models/subgroup-1/model-e",
     ):
-        git_obj = git.Repo(repo / dname)
-        assert (repo / dname).is_dir()
+        dpath = repo / dname
+        git_obj = git.Repo(dpath)
+        assert dpath.is_dir()
         staged_diffs = git_obj.index.diff("HEAD")
         assert not staged_diffs
 
 
-def test_add_modify_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+@pytest.mark.fresh_repo_path
+def test_add_modify_simple() -> None:
     """Test adding a modified file inside a metarepo."""
     runner = CliRunner()
-    repo2 = tmp_path / repo.name
-
-    shutil.copytree(repo, repo2)
-    monkeypatch.chdir(repo2)
+    root = Path().resolve()
 
     fnames = []
-    for fname in pathlib.Path(repo2).rglob("**/README.md"):
+    for fname in root.rglob("**/README.md"):
         with open(fname, "w") as fobj:
             fobj.write("")
-            fnames.append(str(fname.relative_to(repo2)))
+            fnames.append(str(fname.relative_to(root)))
 
     result = runner.invoke(
         gitconductor.cli.cli,
@@ -170,28 +166,24 @@ def test_add_modify_simple(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Pa
         "models/subgroup-1/model-d",
         "models/subgroup-1/model-e",
     ):
-        git_obj = git.Repo(repo2 / dname)
-        assert (repo2 / dname).is_dir()
+        git_obj = git.Repo(root / dname)
+        assert (root / dname).is_dir()
         staged_diffs = git_obj.index.diff("HEAD")
         staged_files = [diff.a_path for diff in staged_diffs]
         assert "README.md" in staged_files
 
 
-def test_add_modify_untracked_files(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path
-) -> None:
+@pytest.mark.fresh_repo_path
+def test_add_modify_untracked_files() -> None:
     """Test adding a modified file inside a metarepo."""
     runner = CliRunner()
-    repo2 = tmp_path / repo.name
-
-    shutil.copytree(repo, repo2)
-    monkeypatch.chdir(repo2)
+    root = Path().resolve()
 
     fnames = []
-    for fname in pathlib.Path(repo2).rglob("**/README.md"):
+    for fname in root.rglob("**/README.md"):
         with open(fname, "w") as fobj:
             fobj.write("")
-            fnames.append(str(fname.relative_to(repo2)))
+            fnames.append(str(fname.relative_to(root)))
         with open(fname.parent / "test", "w") as fobj:
             fobj.write("")
 
@@ -209,30 +201,28 @@ def test_add_modify_untracked_files(
         "models/subgroup-1/model-d",
         "models/subgroup-1/model-e",
     ):
-        git_obj = git.Repo(repo2 / dname)
-        assert (repo2 / dname).is_dir()
+        git_obj = git.Repo(root / dname)
+        assert (root / dname).is_dir()
         staged_diffs = git_obj.index.diff("HEAD")
         staged_files = [diff.a_path for diff in staged_diffs]
         assert "README.md" in staged_files
         assert "test" not in staged_files
 
 
-def test_add_modify_new_files(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+@pytest.mark.fresh_repo_path
+def test_add_modify_new_files() -> None:
     """Test adding a modified file inside a metarepo."""
     runner = CliRunner()
-    repo2 = tmp_path / repo.name
-
-    shutil.copytree(repo, repo2)
-    monkeypatch.chdir(repo2)
+    root = Path().resolve()
 
     fnames = []
-    for fname in pathlib.Path(repo2).rglob("**/README.md"):
+    for fname in root.rglob("**/README.md"):
         with open(fname, "w") as fobj:
             fobj.write("")
-            fnames.append(str(fname.relative_to(repo2)))
+            fnames.append(str(fname.relative_to(root)))
         with open(fname.parent / "test", "w") as fobj:
             fobj.write("")
-            fnames.append(str((fname.parent / "test").relative_to(repo2)))
+            fnames.append(str((fname.parent / "test").relative_to(root)))
 
     result = runner.invoke(
         gitconductor.cli.cli,
@@ -248,23 +238,19 @@ def test_add_modify_new_files(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib
         "models/subgroup-1/model-d",
         "models/subgroup-1/model-e",
     ):
-        git_obj = git.Repo(repo2 / dname)
-        assert (repo2 / dname).is_dir()
+        git_obj = git.Repo(root / dname)
+        assert (root / dname).is_dir()
         staged_diffs = git_obj.index.diff("HEAD")
         staged_files = [diff.a_path for diff in staged_diffs]
-        print([i.name for i in (repo2 / dname).iterdir()])
-        print(staged_files)
         assert "README.md" in staged_files
         assert "test" in staged_files
 
 
-def test_commit_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+@pytest.mark.fresh_repo_path
+def test_commit_none() -> None:
     """Test commiting nothing inside a metarepo."""
     runner = CliRunner()
-    repo2 = tmp_path / repo.name
-
-    shutil.copytree(repo, repo2)
-    monkeypatch.chdir(repo2)
+    root = Path().resolve()
 
     result = runner.invoke(gitconductor.cli.cli, ["commit", "-m", "mynewfile"])
     assert result.exit_code == 0
@@ -277,25 +263,23 @@ def test_commit_none(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, re
         "models/subgroup-1/model-d",
         "models/subgroup-1/model-e",
     ):
-        git_obj = git.Repo(repo / dname)
-        assert (repo / dname).is_dir()
+        git_obj = git.Repo(root / dname)
+        assert (root / dname).is_dir()
         staged_diffs = git_obj.index.diff("HEAD")
         assert not staged_diffs
 
 
-def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, repo: pathlib.Path) -> None:
+@pytest.mark.fresh_repo_path
+def test_commit_change() -> None:
     """Test commiting a change inside a metarepo."""
     runner = CliRunner()
-    repo2 = tmp_path / repo.name
-
-    shutil.copytree(repo, repo2)
-    monkeypatch.chdir(repo2)
+    root = Path().resolve()
 
     fnames = []
-    for fname in pathlib.Path(repo2).rglob("**/README.md"):
+    for fname in Path(root).rglob("**/README.md"):
         with open(fname, "w") as fobj:
             fobj.write("")
-            fnames.append(str(fname.relative_to(repo2)))
+            fnames.append(str(fname.relative_to(root)))
 
     result = runner.invoke(
         gitconductor.cli.cli,
@@ -315,8 +299,8 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
         "models/subgroup-1/model-d",
         "models/subgroup-1/model-e",
     ):
-        git_obj = git.Repo(repo / dname)
-        assert (repo / dname).is_dir()
+        git_obj = git.Repo(root / dname)
+        assert (root / dname).is_dir()
         staged_diffs = git_obj.index.diff("HEAD")
         assert not staged_diffs
 
@@ -325,7 +309,7 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
     ("command", "subdir", "expectation"),
     [
         (
-            "tree",
+            ("tree",),
             "",
             [
                 "ejb90-group",
@@ -340,7 +324,7 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
             ],
         ),
         (
-            "table",
+            ("table",),
             "",
             [
                 "ejb90-project",
@@ -352,7 +336,7 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
             ],
         ),
         (
-            "access",
+            ("access",),
             "",
             [
                 "Ellis",
@@ -360,7 +344,17 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
             ],
         ),
         (
-            "tree",
+            ("access", "--matrix"),
+            "",
+            [
+                "Group/Project",
+                "Ellis",
+                "mobot",
+                "Access Level",
+            ],
+        ),
+        (
+            ("tree",),
             "models",
             [
                 "models",
@@ -373,7 +367,7 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
             ],
         ),
         (
-            "table",
+            ("table",),
             "models",
             [
                 "model-a",
@@ -384,7 +378,7 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
             ],
         ),
         (
-            "access",
+            ("access",),
             "models",
             [
                 "Ellis",
@@ -392,7 +386,7 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
             ],
         ),
         (
-            "tree",
+            ("tree",),
             "models",
             [
                 "models",
@@ -402,14 +396,14 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
             ],
         ),
         (
-            "table",
+            ("table",),
             "models",
             [
                 "model-a",
             ],
         ),
         (
-            "access",
+            ("access",),
             "models",
             [
                 "Ellis",
@@ -418,34 +412,67 @@ def test_commit_change(monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib.Path, 
         ),
     ],
 )
+@pytest.mark.repo_path
 def test_viz(
-    monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path, command: str, subdir: str, expectation: list[str]
+    monkeypatch: pytest.MonkeyPatch,
+    command: tuple[str, ...],
+    subdir: str,
+    expectation: list[str],
 ) -> None:
     """Test tree visualisation."""
     runner = CliRunner()
-    monkeypatch.chdir(repo / subdir)
-
-    result = runner.invoke(gitconductor.cli.cli, ["viz", command])
+    if subdir:
+        monkeypatch.chdir(subdir)
+    result = runner.invoke(gitconductor.cli.cli, ["viz", *command])
 
     assert result.exit_code == 0
     for name in expectation:
         assert name in result.output
 
 
-def test_help() -> None:
-    """Test help string."""
-    runner = CliRunner()
-
-    result = runner.invoke(gitconductor.cli.cli, ["help"])
-
-    assert result.exit_code == 0
-    assert "is a command-line tool and Python library" in result.output
-
-
-def test_status(monkeypatch: pytest.MonkeyPatch, repo: pathlib.Path) -> None:
+@pytest.mark.repo_path
+def test_status() -> None:
     """Test status."""
     runner = CliRunner()
-    monkeypatch.chdir(repo)
+    result = runner.invoke(gitconductor.cli.cli, ["status"])
+    assert result.exit_code == 0
 
+
+@pytest.mark.fresh_repo_path
+def test_status_unstaged(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test status."""
+    # Modify file
+    monkeypatch.chdir("ejb90-project")
+    with open("README.md", "w") as fobj:
+        fobj.write("Hello, World!")
+
+    runner = CliRunner()
+    result = runner.invoke(gitconductor.cli.cli, ["status"])
+    assert result.exit_code == 0
+
+
+@pytest.mark.fresh_repo_path
+def test_status_unstaged_staged(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test status."""
+    # Modify file
+    monkeypatch.chdir("ejb90-project")
+    with open("README.md", "w") as fobj:
+        fobj.write("Hello, World!")
+
+    runner = CliRunner()
+    # Add file to staging
+    runner.invoke(gitconductor.cli.cli, ["add", "README.md"])
+    result = runner.invoke(gitconductor.cli.cli, ["status"])
+    assert result.exit_code == 0
+
+
+@pytest.mark.fresh_repo_path
+def test_status_staged(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test status."""
+    # Modify file
+    monkeypatch.chdir("ejb90-project")
+    Path("tmp").touch()
+
+    runner = CliRunner()
     result = runner.invoke(gitconductor.cli.cli, ["status"])
     assert result.exit_code == 0

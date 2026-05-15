@@ -23,7 +23,6 @@ def load_cfg(cfg: pathlib.Path | None) -> gitlab.GitlabGroup | gitlab.GitlabProj
             for parent in pathlib.Path().resolve().parents:
                 cfg = parent / gitlab.GROUP_FNAME
                 if cfg.is_file():
-                    print(cfg)
                     break
             else:
                 raise FileNotFoundError(f'No gitconductor configuration file "{gitlab.GROUP_FNAME}" found up to root.')

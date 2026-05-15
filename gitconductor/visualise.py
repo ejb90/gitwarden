@@ -2,6 +2,7 @@
 
 import pathlib
 
+import rich.box
 import rich.console
 import rich.table
 import rich.tree
@@ -9,6 +10,7 @@ import rich.tree
 from gitconductor.gitlab import GitlabGroup, GitlabProject
 
 CODE_TO_ACCESS = {
+    0: "No Access",
     10: "Guest",
     20: "Reporter",
     30: "Developer",
@@ -16,6 +18,7 @@ CODE_TO_ACCESS = {
     50: "Owner",
 }
 CODE_TO_COLOUR = {
+    0: "white",
     10: "red",
     20: "bright_magenta",
     30: "orange1",
@@ -75,6 +78,7 @@ def build_access(
     explicit: bool = False,
     root: pathlib.Path = pathlib.Path(),
     maxdepth: int | None = None,
+    colour_only: bool = False,
 ) -> list[str]:
     """Iteratively build access lists.
 
@@ -86,6 +90,7 @@ def build_access(
         explicit (bool):                Explicitly show all members of all groups/projects?
         root (pathlib.Path):            Top level directory.
         maxdepth (int):                 Maximum recursion depth (0=PWD).
+        colour_only (bool):             Only return the colour code for the access level.
 
     Returns:
         list:                           New row to print to table.
@@ -101,9 +106,11 @@ def build_access(
         for i, member in enumerate(members):
             rows.append(
                 [
-                    str(group.path.relative_to(root.parent)) if not i else "",
+                    str(group.path.relative_to(root.parent)) if (not i or colour_only) else "",
                     member.name,
-                    f"[{CODE_TO_COLOUR[member.access_level]}]{CODE_TO_ACCESS[member.access_level]}",
+                    f"[{CODE_TO_COLOUR[member.access_level]}]{CODE_TO_ACCESS[member.access_level]}"
+                    if not colour_only
+                    else f"[{CODE_TO_COLOUR[member.access_level]}]",
                     member.public_email,
                     member.expires_at,
                 ]
@@ -113,11 +120,25 @@ def build_access(
     if isinstance(group, GitlabGroup) and (maxdepth is None or depth < maxdepth):
         for project in group.projects:
             rows = build_access(
-                project, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit, maxdepth=maxdepth, root=root
+                project,
+                rows,
+                depth=depth + 1,
+                unique_ids=unique_ids,
+                explicit=explicit,
+                maxdepth=maxdepth,
+                root=root,
+                colour_only=colour_only,
             )
         for grp in group.subgroups:
             rows = build_access(
-                grp, rows, depth=depth + 1, unique_ids=unique_ids, explicit=explicit, maxdepth=maxdepth, root=root
+                grp,
+                rows,
+                depth=depth + 1,
+                unique_ids=unique_ids,
+                explicit=explicit,
+                maxdepth=maxdepth,
+                root=root,
+                colour_only=colour_only,
             )
 
     return rows
@@ -158,7 +179,7 @@ def table(group: GitlabGroup, maxdepth: int | None = None) -> None:
 
 
 def access(group: GitlabGroup, explicit: bool = False, maxdepth: int | None = None) -> None:
-    """Make a acess visualisation.
+    """Make a access visualisation.
 
     Args:
         group (gitlab.GitlabGroup):     Gitlab group instance.
@@ -174,4 +195,45 @@ def access(group: GitlabGroup, explicit: bool = False, maxdepth: int | None = No
     for row in rows:
         table.add_row(*row)
     console = rich.console.Console()
+    console.print(table, crop=True)
+
+
+def access_matrix(group: GitlabGroup, maxdepth: int | None = None) -> None:
+    """Make a access matrix visualisation.
+
+    Args:
+        group (gitlab.GitlabGroup):     Gitlab group instance.
+        maxdepth (int):                 Maximum recursion depth (0=PWD).
+
+    Returns:
+        None
+    """
+    rows = build_access(group, explicit=True, maxdepth=maxdepth, root=group.path, colour_only=True)
+    entries = {r[0] for r in rows if r[0]}
+    users = {r[1] for r in rows if r[1]}
+
+    table = rich.table.Table(show_lines=True, box=rich.box.SQUARE)
+    table.add_column("Group/Project", style="bold")
+    [table.add_column(c) for c in sorted(users)]
+
+    for entry in sorted(entries):
+        row = [
+            entry,
+        ]
+        for user in sorted(users):
+            access = next((r[2] for r in rows if r[0] == entry and r[1] == user), "white")
+            block = f"[on {access[1:-1]}]{' ' * len(user)}"
+            row.append(block)
+
+        table.add_row(*row)
+
+    console = rich.console.Console()
+    console.print(table, crop=True)
+
+    table = rich.table.Table()
+    table.add_column("Access Level", style="bold")
+    for code, access in CODE_TO_ACCESS.items():
+        block = f"[on {CODE_TO_COLOUR[code]}]{' ' * 10}"
+        table.add_row(f"{access:<10} {block}")
+
     console.print(table, crop=True)

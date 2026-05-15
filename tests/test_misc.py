@@ -1,13 +1,13 @@
 """Test misc functionality."""
 
-import pathlib
+from pathlib import Path
 
 import pytest
 
-from gitconductor import gitlab, misc
+from gitconductor import gitlab, misc, settings
 
 
-def test_load_cfg_directly(repo: pathlib.Path) -> None:
+def test_load_cfg_directly(repo: Path) -> None:
     """Load cfg file directly."""
     grp = misc.load_cfg(repo / gitlab.GROUP_FNAME)
     assert isinstance(grp, gitlab.GitlabGroup)
@@ -22,7 +22,7 @@ def test_load_cfg_missing_walk() -> None:
 def test_load_cfg_directly_missing() -> None:
     """Load missing cfg file."""
     with pytest.raises(FileNotFoundError, match=r'The provided gitconductor configuration file ".+" does not exist.'):
-        misc.load_cfg(pathlib.Path("missing_file"))
+        misc.load_cfg(Path("missing_file"))
 
 
 def test_load_cfg_wrong_type() -> None:
@@ -46,3 +46,23 @@ def test_readme() -> None:
         "License",
     ):
         assert key in readme
+
+
+def test_settings() -> None:
+    """Test settings."""
+    settings.Settings()
+
+
+def test_settings_file_full() -> None:
+    """Test settings."""
+    cfg = settings.Settings(cfg=Path("gitconductor.toml"))
+    assert not cfg.gitlab.get("ssl_verify")
+
+
+@pytest.mark.tmp_path
+def test_settings_file_partial() -> None:
+    """Test settings."""
+    with open("gitconductor.toml", "w") as fobj:
+        fobj.write("[gitlab]\nssl_verify = false\n")
+    cfg = settings.Settings(cfg=Path("gitconductor.toml"))
+    assert not cfg.gitlab.get("ssl_verify")

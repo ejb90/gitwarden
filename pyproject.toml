@@ -1,6 +1,6 @@
 [project]
 name = "gitconductor"
-version = "0.3.1"
+version = "0.4.0"
 description = "Manage nested git repositories in Gitlab seemlessly(ish)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -137,10 +137,23 @@ python_functions = ["test_*"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: integration tests",
+    "tmp_path: run this test from tmp_path",
+    "repo_path: run this test from main repo path",
+    "fresh_repo_path: run this test from a fresh copy of the main repo path",
 ]
 
 xfail_strict = true
 filterwarnings = [
     "error",
     "ignore::DeprecationWarning:pkg_resources",
+]
+
+[tool.uv.workspace]
+members = [
+    "ejb90-group/ejb90-project",
+    "ejb90-group/models/model-a",
+    "ejb90-group/models/model-b",
+    "ejb90-group/models/model-c",
+    "ejb90-group/models/subgroup-1/model-d",
+    "ejb90-group/models/subgroup-1/model-e",
 ]

@@ -36,17 +36,16 @@ Access to Gitlab is controlled via Personal Access Tokens. To generate:
 3. Click preferences in the drop down.
 4. Click "Personal access tokens" on the left side bar.
 5. Click the "Add new token" button in the top right.
-6. Give it a helpful name.
-7. Set the expiry date - for closed systems the longest permissable time of 1 year is easiest.
-8. Click the tick box for:
+6. Select "legacy".
+7. Give it a helpful name.
+8. Set the expiry date - for closed systems the longest permissable time of 1 year is easiest.
+9. Click the tick box for:
     * read_user
     * read_repository
-    * read_virtual_registry
-    * read_registry
     * read_api
-    * self_rotate
-9. Click the "Generate token" button below.
-10. Copy the new token (noting it can't be viewed again after).
+    * write_repository
+10. Click the "Generate token" button below.
+11. Copy the new token (noting it can't be viewed again after).
 
 # Configuration
 
@@ -157,6 +156,62 @@ Results in:
 └────────────────────┴───────┴──────────────┴──────────────┴────────┘
 ```
 
+## Python
+
+Gitconductor can also inspect and maniupulate cloned repositories as Python packages. A repository is treated as a Python package when it contains either `pyproject.toml` or `setup.py`. Python commands run recursively from the current Gitconductor group, subgroup, or project, so you can work across a whole clone or narrow the operation by changing into a subgroup directory first.
+
+### Generate Requirements
+
+Generate a `requirements.txt` file containing direct references to each Python package in the repository tree:
+
+```
+gitconductor py-requirements
+```
+
+By default, Gitconductor writes to `requirements.txt` and will not overwrite an existing file unless `--force` is passed:
+
+```
+gitconductor py-requirements --force
+```
+
+To choose a different output file:
+
+```
+gitconductor py-requirements --fname model-requirements.txt
+```
+
+A pyproject.toml-style `dependences` snippet is also possible with the `--pyproject` argument:
+
+```
+gitconductor py-requirements --pyproject
+```
+
+
+### Install Python Packages
+
+Install every Python package in the current Gitlab Group tree into the active Python environment:
+
+```
+gitconductor py-installer
+```
+
+By default this runs `uv pip install <path>` for each Python package it finds. To install packages in editable mode:
+
+```
+gitconductor py-installer --editable
+```
+
+You can pass a different package-manager command with `--package-manager`:
+
+```
+gitconductor py-installer --package-manager "python -m pip"
+```
+
+To install from a specific package index:
+
+```
+gitconductor py-installer --index https://example.com/simple
+```
 
 # Usage (Python API)
 
@@ -172,7 +227,7 @@ group.recursive_command("clone")
 
 # Development & Contributing
 
-Contributions welcome — feel free to open issues or submit PRs.
+Contributions welcome — feel free to open issues or submit PRs. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 # License
 
