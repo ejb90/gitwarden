@@ -309,7 +309,7 @@ def test_commit_change() -> None:
     ("command", "subdir", "expectation"),
     [
         (
-            "tree",
+            ("tree",),
             "",
             [
                 "ejb90-group",
@@ -324,7 +324,7 @@ def test_commit_change() -> None:
             ],
         ),
         (
-            "table",
+            ("table",),
             "",
             [
                 "ejb90-project",
@@ -336,7 +336,7 @@ def test_commit_change() -> None:
             ],
         ),
         (
-            "access",
+            ("access",),
             "",
             [
                 "Ellis",
@@ -344,7 +344,17 @@ def test_commit_change() -> None:
             ],
         ),
         (
-            "tree",
+            ("access", "--matrix"),
+            "",
+            [
+                "Group/Project",
+                "Ellis",
+                "mobot",
+                "Access Level",
+            ],
+        ),
+        (
+            ("tree",),
             "models",
             [
                 "models",
@@ -357,7 +367,7 @@ def test_commit_change() -> None:
             ],
         ),
         (
-            "table",
+            ("table",),
             "models",
             [
                 "model-a",
@@ -368,7 +378,7 @@ def test_commit_change() -> None:
             ],
         ),
         (
-            "access",
+            ("access",),
             "models",
             [
                 "Ellis",
@@ -376,7 +386,7 @@ def test_commit_change() -> None:
             ],
         ),
         (
-            "tree",
+            ("tree",),
             "models",
             [
                 "models",
@@ -386,14 +396,14 @@ def test_commit_change() -> None:
             ],
         ),
         (
-            "table",
+            ("table",),
             "models",
             [
                 "model-a",
             ],
         ),
         (
-            "access",
+            ("access",),
             "models",
             [
                 "Ellis",
@@ -403,12 +413,17 @@ def test_commit_change() -> None:
     ],
 )
 @pytest.mark.repo_path
-def test_viz(monkeypatch: pytest.MonkeyPatch, command: str, subdir: str, expectation: list[str]) -> None:
+def test_viz(
+    monkeypatch: pytest.MonkeyPatch,
+    command: tuple[str, ...],
+    subdir: str,
+    expectation: list[str],
+) -> None:
     """Test tree visualisation."""
     runner = CliRunner()
     if subdir:
         monkeypatch.chdir(subdir)
-    result = runner.invoke(gitconductor.cli.cli, ["viz", command])
+    result = runner.invoke(gitconductor.cli.cli, ["viz", *command])
 
     assert result.exit_code == 0
     for name in expectation:

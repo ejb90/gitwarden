@@ -89,11 +89,11 @@ def py_installer(ctx: click.Context, editable: bool, index: str | None, package_
 
 @cli.command()
 @click.pass_context
-def py_wheeler(ctx: click.Context) -> None:
-    """Install python packages in the cloned repository tree.
+def py_wheeler(_ctx: click.Context) -> None:
+    """Build wheels for python packages in the cloned repository tree.
 
     Arguments:
-        ctx (click.Context):                Top level CLI flags.
+        _ctx (click.Context):               Top level CLI flags.
 
     Returns:
         None
@@ -102,4 +102,4 @@ def py_wheeler(ctx: click.Context) -> None:
 
     # [output.TABLE.add_column(c) for c in ["Name", "Path"]]
     # group.recursive_command("pyinstall", editable=editable, index=index)
-    raise NotImplementedError("Wheel building is not implemented yet.")
+    raise click.ClickException("Wheel building is not implemented yet.")

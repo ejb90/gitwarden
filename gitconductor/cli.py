@@ -82,22 +82,24 @@ def table(ctx: click.Context, maxdepth: int | None) -> None:
     "--explicit",
     is_flag=True,
     default=False,
-    help="Explicitly show each individual user for each sub-Group and Project.",
+    help="Explicitly show each individual user for each sub-Group and Project in the full tree. "
+    "Else abbreviate to show only the highest level of access for each group and each user.",
+)
+@click.option(
+    "--matrix",
+    is_flag=True,
+    default=False,
+    help="Show a 2D matri of each user and each group.",
 )
 @click.option("--maxdepth", type=int, default=None, help="Maximum recursion depth to traverse for output.")
-def access(ctx: click.Context, explicit: bool, maxdepth: int | None) -> None:
+def access(ctx: click.Context, explicit: bool, maxdepth: int | None, matrix: bool = False) -> None:
     """Visualise access recursively."""
     group = misc.load_cfg(ctx.obj["state"])
-    visualise.access(group, explicit=explicit, maxdepth=maxdepth)
 
-
-@viz.command()
-@click.pass_context
-@click.option("--maxdepth", type=int, default=None, help="Maximum recursion depth to traverse for output.")
-def access_matrix(ctx: click.Context, explicit: bool, maxdepth: int | None) -> None:
-    """Visualise access recursively."""
-    group = misc.load_cfg(ctx.obj["state"])
-    visualise.access_matrix(group, explicit=explicit, maxdepth=maxdepth)
+    if matrix:
+        visualise.access_matrix(group, maxdepth=maxdepth)
+    else:
+        visualise.access(group, explicit=explicit, maxdepth=maxdepth)
 
 
 # =====================================================================================================================
@@ -110,4 +112,3 @@ def help() -> None:
 
     info = "\n".join(misc.readme()["Installation"].splitlines()[4:])
     console.print(rich.markdown.Markdown(info))
-    print()

@@ -1,7 +1,5 @@
 # Contributing
 
-Thanks for taking the time to improve `gitconductor`. This project is a small Python CLI/library for working across nested GitLab groups, so changes are easiest to review when they stay focused and include tests for the CLI behavior they touch.
-
 ## Development Setup
 
 Clone the repository and install the project with its development dependencies:
@@ -10,19 +8,7 @@ Clone the repository and install the project with its development dependencies:
 uv sync --extra dev
 ```
 
-If you are not using `uv`, install the package in editable mode with the development extra:
-
-```bash
-python -m pip install -e ".[dev]"
-```
-
-For GitLab-backed tests and live CLI usage, set a GitLab personal access token with suitable repository/API permissions:
-
-```bash
-export GITCONDUCTOR_GITLAB_API_KEY=<token>
-```
-
-You can also configure GitLab settings in `gitconductor.toml`; see the README for configuration details.
+Follow the Gitlab API access setup in the README.md.
 
 ## Running Tests
 

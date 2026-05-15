@@ -8,6 +8,7 @@ import subprocess
 # Meta --------------------------------------------------------------------------------------------
 from importlib.metadata import Distribution, distributions
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 import pytest
 from _pytest.logging import LogCaptureFixture
@@ -37,20 +38,66 @@ def is_editable(dist: Distribution) -> bool:
     return data.get("dir_info", {}).get("editable", False)
 
 
-def packages_info() -> dict[str, dict[str, str | bool]]:
+def package_source_path(dist: Distribution) -> Path | None:
+    """Get the local source path for a direct-url distribution.
+
+    Args:
+        dist (Distribution): Installed package distribution metadata.
+
+    Returns:
+        Path | None: Source path when the distribution was installed from a local path.
+    """
+    direct_url = dist.read_text("direct_url.json")
+    if not direct_url:
+        return None
+
+    try:
+        data = json.loads(direct_url)
+    except json.JSONDecodeError:
+        return None
+
+    url = data.get("url", "")
+    parsed = urlparse(url)
+    if parsed.scheme != "file":
+        return None
+
+    return Path(unquote(parsed.path)).resolve()
+
+
+def packages_info(root: Path | None = None) -> dict[str, dict[str, str | bool]]:
     """Collect installed package versions and editable status.
+
+    Args:
+        root (Path | None): Root path used to scope local package installations.
 
     Returns:
         dict[str, dict[str, str | bool]]: Mapping of package names to package metadata.
     """
-    packages = {
-        dist.metadata["Name"]: {
+    if root is None:
+        root = Path.cwd()
+    root = root.resolve()
+
+    packages = {}
+    for dist in distributions():
+        source_path = package_source_path(dist)
+        if source_path is None or not source_path.is_relative_to(root):
+            continue
+
+        packages[dist.metadata["Name"]] = {
             "version": dist.version,
             "editable": is_editable(dist),
         }
-        for dist in distributions()
-    }
     return packages
+
+
+def uninstall_packages(package_names: tuple[str, ...]) -> None:
+    """Uninstall packages installed by installer tests.
+
+    Args:
+        package_names (tuple[str, ...]): Package names to uninstall.
+    """
+    for package_name in package_names:
+        subprocess.run(["uv", "pip", "uninstall", package_name], check=False)
 
 
 # Requirements ------------------------------------------------------------------------------------
@@ -124,45 +171,64 @@ def test_pyrequirements_noforce_with_file(caplog: LogCaptureFixture) -> None:
 @pytest.mark.fresh_repo_path
 def test_pyinstaller_simple() -> None:
     """Install Python packages."""
+    package_names = ("ejb90-project", "model-a", "model-b", "model-c", "model-d", "model-e")
     runner = CliRunner()
-    result = runner.invoke(gitconductor.cli.cli, ["py-installer"])
+    try:
+        result = runner.invoke(gitconductor.cli.cli, ["py-installer"])
 
-    assert result.exit_code == 0
+        assert result.exit_code == 0
 
-    packages = packages_info()
-    for repo in ("ejb90-project", "model-a", "model-b", "model-c", "model-d", "model-e"):
-        assert repo in packages
-        assert not packages[repo]["editable"]
-        subprocess.run(["uv", "pip", "uninstall", repo], check=True)
+        packages = packages_info()
+        for repo in package_names:
+            assert repo in packages
+            assert not packages[repo]["editable"]
+    finally:
+        uninstall_packages(package_names)
 
 
 @pytest.mark.fresh_repo_path
 def test_pyinstaller_editable() -> None:
     """Install Python packages."""
+    package_names = ("ejb90-project", "model-a", "model-b", "model-c", "model-d", "model-e")
     runner = CliRunner()
-    result = runner.invoke(gitconductor.cli.cli, ["py-installer", "--editable"])
+    try:
+        result = runner.invoke(gitconductor.cli.cli, ["py-installer", "--editable"])
 
-    assert result.exit_code == 0
+        assert result.exit_code == 0
 
-    packages = packages_info()
-    for repo in ("ejb90-project", "model-a", "model-b", "model-c", "model-d", "model-e"):
-        assert repo in packages
-        assert packages[repo]["editable"]
-        subprocess.run(["uv", "pip", "uninstall", repo], check=True)
+        packages = packages_info()
+        for repo in package_names:
+            assert repo in packages
+            assert packages[repo]["editable"]
+    finally:
+        uninstall_packages(package_names)
 
 
 @pytest.mark.fresh_repo_path
 def test_pyinstaller_subgroup(monkeypatch: pytest.MonkeyPatch) -> None:
     """Install Python packages."""
+    package_names = ("model-a", "model-b", "model-c", "model-d", "model-e")
     monkeypatch.chdir("models")
     runner = CliRunner()
-    result = runner.invoke(gitconductor.cli.cli, ["py-installer"])
+    try:
+        result = runner.invoke(gitconductor.cli.cli, ["py-installer"])
 
-    assert result.exit_code == 0
+        assert result.exit_code == 0
 
-    packages = packages_info()
-    for repo in ("model-a", "model-b", "model-c", "model-d", "model-e"):
-        assert repo in packages
-        assert not packages[repo]["editable"]
-        subprocess.run(["uv", "pip", "uninstall", repo], check=True)
-    assert "ejb90-project" not in packages
+        packages = packages_info()
+        for repo in package_names:
+            assert repo in packages
+            assert not packages[repo]["editable"]
+        assert "ejb90-project" not in packages
+    finally:
+        uninstall_packages(package_names)
+
+
+def test_pywheeler_not_implemented() -> None:
+    """Report unimplemented wheel building as a CLI error."""
+    runner = CliRunner()
+    result = runner.invoke(gitconductor.cli.cli, ["py-wheeler"])
+
+    assert result.exit_code == 1
+    assert "Wheel building is not implemented yet." in result.output
+    assert "Traceback" not in result.output
