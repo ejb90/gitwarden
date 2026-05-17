@@ -230,11 +230,19 @@ def test_pywheel(monkeypatch: pytest.MonkeyPatch) -> None:
     repo_names = ("model-a", "model-b", "model-c", "subgroup-1/model-d", "subgroup-1/model-e")
     monkeypatch.chdir(Path("models"))
     runner = CliRunner()
-    result = runner.invoke(gitconductor.cli.cli, ["py-wheeler"])
+    result = runner.invoke(gitconductor.cli.cli, ["py-wheel"])
+
+    print(result.output)
+    print(Path().resolve())
 
     assert result.exit_code == 0
 
     for repo in repo_names:
-        wheel_path = Path(repo) / "dist" / f"{repo.replace('/', '-')}-0.1.0-py3-none-any.whl"
+        print(Path(repo).is_dir())
+        print([f.name for f in Path(repo).iterdir()])
+        print([f.name for f in (Path(repo) / "dist").iterdir()])
+        print([f.name for f in (Path(repo) / "build").iterdir()])
+        wheel_path = (
+            Path(repo) / "dist" / f"{Path(repo).name.replace('/', '-').replace('-', '_')}-0.1.0-py3-none-any.whl"
+        )
         assert wheel_path.is_file()
-
