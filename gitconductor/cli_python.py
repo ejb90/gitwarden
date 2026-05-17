@@ -101,5 +101,5 @@ def py_wheeler(_ctx: click.Context) -> None:
     # group = misc.load_cfg(ctx.obj["state"])
 
     # [output.TABLE.add_column(c) for c in ["Name", "Path"]]
-    # group.recursive_command("pyinstall", editable=editable, index=index)
+    # group.recursive_command("pywheel", editable=editable, index=index)
     raise click.ClickException("Wheel building is not implemented yet.")

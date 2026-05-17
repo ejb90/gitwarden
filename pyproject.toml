@@ -1,7 +1,7 @@
 [project]
 name = "gitconductor"
 version = "0.4.2"
-description = "Manage nested git repositories in Gitlab seemlessly(ish)"
+description = "Manage nested GitLab repositories seamlessly(ish)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

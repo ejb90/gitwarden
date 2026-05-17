@@ -9,7 +9,7 @@ from gitconductor import gitlab, misc, output
 from .cli import cli
 
 
-@cli.command()
+@cli.command(help="Clone a GitLab group or project and save its hierarchy state.")
 @click.argument("name")
 @click.argument(
     "directory",

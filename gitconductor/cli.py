@@ -82,14 +82,14 @@ def table(ctx: click.Context, maxdepth: int | None) -> None:
     "--explicit",
     is_flag=True,
     default=False,
-    help="Explicitly show each individual user for each sub-Group and Project in the full tree. "
+    help="Explicitly show each individual user for each subgroup and project in the full tree. "
     "Else abbreviate to show only the highest level of access for each group and each user.",
 )
 @click.option(
     "--matrix",
     is_flag=True,
     default=False,
-    help="Show a 2D matri of each user and each group.",
+    help="Show a 2D matrix of each user and each group.",
 )
 @click.option("--maxdepth", type=int, default=None, help="Maximum recursion depth to traverse for output.")
 def access(ctx: click.Context, explicit: bool, maxdepth: int | None, matrix: bool = False) -> None:

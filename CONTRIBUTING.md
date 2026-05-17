@@ -8,7 +8,7 @@ Clone the repository and install the project with its development dependencies:
 uv sync --extra dev
 ```
 
-Follow the Gitlab API access setup in the README.md.
+Follow the GitLab API access setup in the README.
 
 ## Running Tests
 
