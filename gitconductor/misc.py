@@ -15,7 +15,7 @@ def load_cfg(cfg: pathlib.Path | None) -> gitlab.GitlabGroup | gitlab.GitlabProj
         cfg (pathlib.Path, None):                   Path to cfg serialised pickle, or None.
 
     Returns:
-        gitlab.GitlabGroup, gitlab.GitlabProject:   Returned instance.
+        gitlab.GitlabGroup, gitlab.GitlabProject:   Returned GitLab instance.
     """
     if cfg is None:
         cfg = gitlab.GROUP_FNAME
@@ -45,10 +45,10 @@ def find_subgroup(group: gitlab.GitlabGroup | gitlab.GitlabProject) -> gitlab.Gi
     """Find subgroup in pwd of Group structure.
 
     Arguments:
-        group (gitlab.GitlabGroup):     Gitlab group instance.
+        group (gitlab.GitlabGroup):     GitLab group instance.
 
     Returns:
-        gitlab.GitlabGroup, None:       Gitlab group instance.
+        gitlab.GitlabGroup, None:       GitLab group instance.
 
     """
     pwd = pathlib.Path().resolve()

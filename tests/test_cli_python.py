@@ -224,21 +224,17 @@ def test_pyinstaller_subgroup(monkeypatch: pytest.MonkeyPatch) -> None:
         uninstall_packages(package_names)
 
 
-def test_pywheeler(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.fresh_repo_path
+def test_pywheel(monkeypatch: pytest.MonkeyPatch) -> None:
     """Build Python wheels through the recursive GitLab command."""
-    package_names = ("model-a", "model-b", "model-c", "model-d", "model-e")
-    monkeypatch.chdir("models")
+    repo_names = ("model-a", "model-b", "model-c", "subgroup-1/model-d", "subgroup-1/model-e")
+    monkeypatch.chdir(Path("models"))
     runner = CliRunner()
-    try:
-        result = runner.invoke(gitconductor.cli.cli, ["py-wheeler"])
+    result = runner.invoke(gitconductor.cli.cli, ["py-wheeler"])
 
-        assert result.exit_code == 0
+    assert result.exit_code == 0
 
-    #     for repo in package_names:
-    #         assert repo in packages
-    #         assert not packages[repo]["editable"]
-    #     assert "ejb90-project" not in packages
-    finally:
-        # delete_wheels(package_names)
-        pass
+    for repo in repo_names:
+        wheel_path = Path(repo) / "dist" / f"{repo.replace('/', '-')}-0.1.0-py3-none-any.whl"
+        assert wheel_path.is_file()
 

@@ -20,11 +20,11 @@ from .cli import cli
 @click.option("--flat", type=bool, is_flag=True, default=False)
 @click.pass_context
 def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool) -> None:
-    """Clone Gitlab (sub-)Group/Project repositories recursively.
+    """Clone GitLab group, subgroup, or project repositories recursively.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
-        name (str):                         Name of the Gitlab group to recursively clone.
+        name (str):                         Name of the GitLab group to recursively clone.
         directory (pathlib.Path, None):     Directory in which to clone repositories.
         flat (bool):                        Flat directory structure?
 
@@ -99,7 +99,15 @@ def checkout(ctx: click.Context, name: str) -> None:
     nargs=-1,
     type=str,
 )
-@click.option("--all", "-A", "all_", type=bool, is_flag=True, default=False, help="Operate on all unstaged files in all repositories.")
+@click.option(
+    "--all",
+    "-A",
+    "all_",
+    type=bool,
+    is_flag=True,
+    default=False,
+    help="Operate on all unstaged files in all repositories.",
+)
 @click.pass_context
 def add(ctx: click.Context, fnames: tuple, all_: bool) -> None:
     """Add files to staging area in each Project repository in the hierarchy recursively.
@@ -171,5 +179,6 @@ def push(ctx: click.Context) -> None:
     Returns:
         None
     """
+    [output.TABLE.add_column(c) for c in ["Repository", "Branch", "Remote"]]
     group = misc.load_cfg(ctx.obj["state"])
     group.recursive_command("push")

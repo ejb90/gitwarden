@@ -1,4 +1,4 @@
-"""Gitlab-related constructs."""
+"""GitLab-related constructs."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ GROUP_FNAME = pathlib.Path(".gitconductor.pkl")
 
 
 class GitlabInstance(BaseModel):
-    """A Gitlab generic instance convenience class.
+    """A GitLab generic instance convenience class.
 
     Attributes:
         ...
@@ -49,7 +49,7 @@ class GitlabInstance(BaseModel):
 
 
 class GitlabGroup(GitlabInstance):
-    """A Gitlab Group convenience class.
+    """A GitLab group convenience class.
 
     Attributes:
         ...
@@ -99,7 +99,7 @@ class GitlabGroup(GitlabInstance):
         Returns:
             None
         """
-        # Loop through projects in the group, set up GitlabProject instance for the project
+        # Loop through projects in the group, set up GitlabProject instance for the project.
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
             proj = GitlabProject(
                 gitlab_url=self.gitlab_url,
@@ -114,7 +114,7 @@ class GitlabGroup(GitlabInstance):
             proj.fullname = fullname
             self.projects.append(proj)
 
-        # Loop through sub-groups in the group, set up GitlabGroup instance for the subgroup
+        # Loop through subgroups in the group, set up GitlabGroup instance for each subgroup.
         for group in self.group.subgroups.list(all=True):
             grp = GitlabGroup(
                 gitlab_url=self.gitlab_url,
@@ -209,7 +209,7 @@ class GitlabGroup(GitlabInstance):
 
 
 class GitlabProject(GitlabInstance):
-    """A Gitlab Project convenience class."""
+    """A GitLab project convenience class."""
 
     project: typing.Any
     gitlab_key: str
@@ -430,7 +430,9 @@ class GitlabProject(GitlabInstance):
             None
         """
         self.git.remotes.origin.push()
-        self.rows.append([self.name, self.git.git.rev_parse("--abbrev-ref", "HEAD"), self.git.remote(name="origin").url])
+        self.rows.append(
+            [self.name, self.git.git.rev_parse("--abbrev-ref", "HEAD"), self.git.remote(name="origin").url]
+        )
 
     def pyinstall(self, pm: str = "uv pip", editable: bool = False, index: str | None = None) -> None:
         """Install Python package.

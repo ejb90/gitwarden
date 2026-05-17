@@ -36,7 +36,7 @@ click.rich_click.MARKDOWN_SYNTAX = "commonmark"
 )
 @click.pass_context
 def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path, state: pathlib.Path) -> None:
-    """Dummy for click."""
+    """Manage nested GitLab groups and projects."""
     ctx.ensure_object(dict)
     cfg = settings.Settings(cfg=cfg)
     ctx.obj["url"] = gitlab_url if gitlab_url else cfg.gitconductor_gitlab_url
