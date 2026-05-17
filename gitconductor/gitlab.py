@@ -349,12 +349,17 @@ class GitlabProject(GitlabInstance):
         )
         self.git.heads[name].checkout()
 
-    def add(self, fnames: tuple) -> None:
+    def add(self, fnames: tuple, all_: bool) -> None:
         """Add files to staging area.
 
         Returns:
             None
         """
+        if all_:
+            untracked = [self.path / fname for fname in self.git.untracked_files]
+            modified = [self.path / d.a_path for d in self.git.index.diff(None)]
+            fnames = untracked + modified
+
         for fname in fnames:
             fname = pathlib.Path(fname).resolve()
             if fname.is_relative_to(self.path):
@@ -425,6 +430,7 @@ class GitlabProject(GitlabInstance):
             None
         """
         self.git.remotes.origin.push()
+        self.rows.append([self.name, self.git.git.rev_parse("--abbrev-ref", "HEAD"), self.git.remote(name="origin").url])
 
     def pyinstall(self, pm: str = "uv pip", editable: bool = False, index: str | None = None) -> None:
         """Install Python package.
@@ -463,3 +469,18 @@ class GitlabProject(GitlabInstance):
 
         else:
             return ""
+
+    def pywheel(self) -> None:
+        """Generate wheel file for Python package.
+
+        Returns:
+            None
+        """
+        if self.is_python_package:
+            cmd = [*shlex.split("uv build"), str(self.path), "--wheel", "--out-dir", str(self.path / "dist")]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode:
+                print(result.stdout)
+                print(result.stderr)
+                raise Exception(f'Failed to build Python package at "{self.path}". Command: {" ".join(cmd)}')
+            self.rows.append([self.python_package_name, str(self.path.relative_to(self.root))])

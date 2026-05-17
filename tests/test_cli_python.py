@@ -224,11 +224,21 @@ def test_pyinstaller_subgroup(monkeypatch: pytest.MonkeyPatch) -> None:
         uninstall_packages(package_names)
 
 
-def test_pywheeler_not_implemented() -> None:
-    """Report unimplemented wheel building as a CLI error."""
+def test_pywheeler(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Build Python wheels through the recursive GitLab command."""
+    package_names = ("model-a", "model-b", "model-c", "model-d", "model-e")
+    monkeypatch.chdir("models")
     runner = CliRunner()
-    result = runner.invoke(gitconductor.cli.cli, ["py-wheeler"])
+    try:
+        result = runner.invoke(gitconductor.cli.cli, ["py-wheeler"])
 
-    assert result.exit_code == 1
-    assert "Wheel building is not implemented yet." in result.output
-    assert "Traceback" not in result.output
+        assert result.exit_code == 0
+
+    #     for repo in package_names:
+    #         assert repo in packages
+    #         assert not packages[repo]["editable"]
+    #     assert "ejb90-project" not in packages
+    finally:
+        # delete_wheels(package_names)
+        pass
+
