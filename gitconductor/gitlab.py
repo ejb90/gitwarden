@@ -91,7 +91,7 @@ class GitlabGroup(GitlabInstance):
             str:        Project visibility (private, internal, public).
         """
         return self.group.attributes["visibility"]
-    
+
     @property
     def members(self) -> list:
         """Get members.
@@ -244,7 +244,7 @@ class GitlabProject(GitlabInstance):
             pathlib.Path:       Project path.
         """
         return self.root / self.fullname
-    
+
     @property
     def visibility(self) -> str:
         """Project visibility.

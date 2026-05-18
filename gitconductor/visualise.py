@@ -113,7 +113,7 @@ def build_access(
                     else f"[{CODE_TO_COLOUR[member.access_level]}]",
                     member.public_email,
                     member.expires_at,
-                    group.visibility
+                    group.visibility,
                 ]
             )
             unique_ids.append(member.id)
@@ -219,7 +219,7 @@ def access_matrix(group: GitlabGroup, maxdepth: int | None = None) -> None:
     [table.add_column(c) for c in sorted(users)]
 
     for entry in sorted(entries):
-        visibility = [r for r in rows if r[0] == entry][0][-1]
+        visibility = next(r for r in rows if r[0] == entry)[-1]
         row = [
             entry,
         ]
