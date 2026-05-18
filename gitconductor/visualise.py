@@ -113,6 +113,7 @@ def build_access(
                     else f"[{CODE_TO_COLOUR[member.access_level]}]",
                     member.public_email,
                     member.expires_at,
+                    group.visibility,
                 ]
             )
             unique_ids.append(member.id)
@@ -193,7 +194,7 @@ def access(group: GitlabGroup, explicit: bool = False, maxdepth: int | None = No
     table = rich.table.Table()
     [table.add_column(c) for c in ["Group/Project", "User", "Access Level", "Public Email", "Expiry"]]
     for row in rows:
-        table.add_row(*row)
+        table.add_row(*row[:5])
     console = rich.console.Console()
     console.print(table, crop=True)
 
@@ -212,16 +213,20 @@ def access_matrix(group: GitlabGroup, maxdepth: int | None = None) -> None:
     entries = {r[0] for r in rows if r[0]}
     users = {r[1] for r in rows if r[1]}
 
+    # Main table
     table = rich.table.Table(show_lines=True, box=rich.box.SQUARE)
     table.add_column("Group/Project", style="bold")
     [table.add_column(c) for c in sorted(users)]
 
     for entry in sorted(entries):
+        visibility = next(r for r in rows if r[0] == entry)[-1]
         row = [
             entry,
         ]
         for user in sorted(users):
-            access = next((r[2] for r in rows if r[0] == entry and r[1] == user), "white")
+            access = next((r[2] for r in rows if r[0] == entry and r[1] == user), None)
+            if access is None:
+                access = "[red]" if visibility == "public" else "[white]"
             block = f"[on {access[1:-1]}]{' ' * len(user)}"
             row.append(block)
 
@@ -230,6 +235,7 @@ def access_matrix(group: GitlabGroup, maxdepth: int | None = None) -> None:
     console = rich.console.Console()
     console.print(table, crop=True)
 
+    # Legend table
     table = rich.table.Table()
     table.add_column("Access Level", style="bold")
     for code, access in CODE_TO_ACCESS.items():

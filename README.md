@@ -156,6 +156,12 @@ Results in:
 └────────────────────┴───────┴──────────────┴──────────────┴────────┘
 ```
 
+To show access as a matrix of users against groups and projects, run:
+
+```
+gitconductor viz access --matrix
+```
+
 ## Python
 
 Gitconductor can also inspect and manipulate cloned repositories as Python packages. A repository is treated as a Python package when it contains either `pyproject.toml` or `setup.py`. Python commands run recursively from the current Gitconductor group, subgroup, or project, so you can work across a whole clone or narrow the operation by changing into a subgroup directory first.
