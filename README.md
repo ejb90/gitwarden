@@ -57,7 +57,7 @@ Gitconductor can store settings in a TOML file. By default, this is at `~/.confi
 
 * `GITCONDUCTOR_CONFIG`: Gitconductor configuration TOML file location.
 * `GITCONDUCTOR_GITLAB_API_KEY`: GitLab Personal Access Token.
-* `GITCONDUCTOR_GITLAB_URL`: GitLab main URL.
+* `GITCONDUCTOR__GITLAB_URL`: GitLab main URL.
 
 ## GitLab API Keys
 
@@ -90,7 +90,7 @@ gitconductor checkout <name>
 
 ## Pull
 
-...
+NOT IMPLEMENTED.
 
 ## Visualisation
 

@@ -15,7 +15,7 @@ click.rich_click.MARKDOWN_SYNTAX = "commonmark"
 
 
 @click.group(help=misc.readme_header())
-@click.option("--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_URL", None), required=False)
+@click.option("--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_GITLAB_URL", None), required=False)
 @click.option(
     "--gitlab-key",
     type=str,
