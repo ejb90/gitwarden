@@ -26,16 +26,16 @@
     * [x] checkout - Checkout a branch                                                       
 
 2. Helpful commands
-    * [] pyinstaller - Clone and groups and install into the current python environment with uv
+    * [x] pyinstaller - Clone and groups and install into the current python environment with uv
     * [] clone filter - downselect group/project names
     * [] Permissions options
-        * [] Show projects/groups a user can access
+        * [x] Show projects/groups a user can access
         * [x] Show users who can access a project/group
-            * [] `--concise` option to show groups
+            * [x] `--explitic` option to show all
             * [] Add "source" of their access
         * [] Show groups who can access project/group
             * [] unix
-            * [] Gitlab
+            * [] GitLab
     * [] Raise merge request
 
 

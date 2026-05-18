@@ -1,4 +1,4 @@
-"""Gitlab-related constructs."""
+"""GitLab-related constructs."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ GROUP_FNAME = pathlib.Path(".gitconductor.pkl")
 
 
 class GitlabInstance(BaseModel):
-    """A Gitlab generic instance convenience class.
+    """A GitLab generic instance convenience class.
 
     Attributes:
         ...
@@ -49,7 +49,7 @@ class GitlabInstance(BaseModel):
 
 
 class GitlabGroup(GitlabInstance):
-    """A Gitlab Group convenience class.
+    """A GitLab group convenience class.
 
     Attributes:
         ...
@@ -99,7 +99,7 @@ class GitlabGroup(GitlabInstance):
         Returns:
             None
         """
-        # Loop through projects in the group, set up GitlabProject instance for the project
+        # Loop through projects in the group, set up GitlabProject instance for the project.
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
             proj = GitlabProject(
                 gitlab_url=self.gitlab_url,
@@ -114,7 +114,7 @@ class GitlabGroup(GitlabInstance):
             proj.fullname = fullname
             self.projects.append(proj)
 
-        # Loop through sub-groups in the group, set up GitlabGroup instance for the subgroup
+        # Loop through subgroups in the group, set up GitlabGroup instance for each subgroup.
         for group in self.group.subgroups.list(all=True):
             grp = GitlabGroup(
                 gitlab_url=self.gitlab_url,
@@ -209,7 +209,7 @@ class GitlabGroup(GitlabInstance):
 
 
 class GitlabProject(GitlabInstance):
-    """A Gitlab Project convenience class."""
+    """A GitLab project convenience class."""
 
     project: typing.Any
     gitlab_key: str
@@ -349,12 +349,17 @@ class GitlabProject(GitlabInstance):
         )
         self.git.heads[name].checkout()
 
-    def add(self, fnames: tuple) -> None:
+    def add(self, fnames: tuple, all_: bool) -> None:
         """Add files to staging area.
 
         Returns:
             None
         """
+        if all_:
+            untracked = [self.path / fname for fname in self.git.untracked_files]
+            modified = [self.path / d.a_path for d in self.git.index.diff(None)]
+            fnames = untracked + modified
+
         for fname in fnames:
             fname = pathlib.Path(fname).resolve()
             if fname.is_relative_to(self.path):
@@ -425,6 +430,9 @@ class GitlabProject(GitlabInstance):
             None
         """
         self.git.remotes.origin.push()
+        self.rows.append(
+            [self.name, self.git.git.rev_parse("--abbrev-ref", "HEAD"), self.git.remote(name="origin").url]
+        )
 
     def pyinstall(self, pm: str = "uv pip", editable: bool = False, index: str | None = None) -> None:
         """Install Python package.
@@ -463,3 +471,18 @@ class GitlabProject(GitlabInstance):
 
         else:
             return ""
+
+    def pywheel(self) -> None:
+        """Generate wheel file for Python package.
+
+        Returns:
+            None
+        """
+        if self.is_python_package:
+            cmd = [*shlex.split("uv build"), str(self.path), "--wheel", "--out-dir", str(self.path / "dist")]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode:
+                print(result.stdout)
+                print(result.stderr)
+                raise Exception(f'Failed to build Python package at "{self.path}". Command: {" ".join(cmd)}')
+            self.rows.append([self.python_package_name, str(self.path.relative_to(self.root))])

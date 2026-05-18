@@ -15,7 +15,7 @@ click.rich_click.MARKDOWN_SYNTAX = "commonmark"
 
 
 @click.group(help=misc.readme_header())
-@click.option("--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_URL", None), required=False)
+@click.option("--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_GITLAB_URL", None), required=False)
 @click.option(
     "--gitlab-key",
     type=str,
@@ -36,7 +36,7 @@ click.rich_click.MARKDOWN_SYNTAX = "commonmark"
 )
 @click.pass_context
 def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path, state: pathlib.Path) -> None:
-    """Dummy for click."""
+    """Manage nested GitLab groups and projects."""
     ctx.ensure_object(dict)
     cfg = settings.Settings(cfg=cfg)
     ctx.obj["url"] = gitlab_url if gitlab_url else cfg.gitconductor_gitlab_url
@@ -82,14 +82,14 @@ def table(ctx: click.Context, maxdepth: int | None) -> None:
     "--explicit",
     is_flag=True,
     default=False,
-    help="Explicitly show each individual user for each sub-Group and Project in the full tree. "
+    help="Explicitly show each individual user for each subgroup and project in the full tree. "
     "Else abbreviate to show only the highest level of access for each group and each user.",
 )
 @click.option(
     "--matrix",
     is_flag=True,
     default=False,
-    help="Show a 2D matri of each user and each group.",
+    help="Show a 2D matrix of each user and each group.",
 )
 @click.option("--maxdepth", type=int, default=None, help="Maximum recursion depth to traverse for output.")
 def access(ctx: click.Context, explicit: bool, maxdepth: int | None, matrix: bool = False) -> None:

@@ -9,7 +9,7 @@ from gitconductor import gitlab, misc, output
 from .cli import cli
 
 
-@cli.command()
+@cli.command(help="Clone a GitLab group or project and save its hierarchy state.")
 @click.argument("name")
 @click.argument(
     "directory",
@@ -20,11 +20,11 @@ from .cli import cli
 @click.option("--flat", type=bool, is_flag=True, default=False)
 @click.pass_context
 def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool) -> None:
-    """Clone Gitlab (sub-)Group/Project repositories recursively.
+    """Clone GitLab group, subgroup, or project repositories recursively.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
-        name (str):                         Name of the Gitlab group to recursively clone.
+        name (str):                         Name of the GitLab group to recursively clone.
         directory (pathlib.Path, None):     Directory in which to clone repositories.
         flat (bool):                        Flat directory structure?
 
@@ -99,13 +99,23 @@ def checkout(ctx: click.Context, name: str) -> None:
     nargs=-1,
     type=str,
 )
+@click.option(
+    "--all",
+    "-A",
+    "all_",
+    type=bool,
+    is_flag=True,
+    default=False,
+    help="Operate on all unstaged files in all repositories.",
+)
 @click.pass_context
-def add(ctx: click.Context, fnames: tuple) -> None:
+def add(ctx: click.Context, fnames: tuple, all_: bool) -> None:
     """Add files to staging area in each Project repository in the hierarchy recursively.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
         fnames (tuple):                     Files to add.
+        all_ (bool):                        Add all unstaged files in all repositories?
 
     Returns:
         None
@@ -113,7 +123,7 @@ def add(ctx: click.Context, fnames: tuple) -> None:
     group = misc.load_cfg(ctx.obj["state"])
 
     [output.TABLE.add_column(c) for c in ["Name", "Branch", "Files"]]
-    group.recursive_command("add", fnames=fnames)
+    group.recursive_command("add", fnames=fnames, all_=all_)
 
 
 @cli.command()
@@ -169,5 +179,6 @@ def push(ctx: click.Context) -> None:
     Returns:
         None
     """
+    [output.TABLE.add_column(c) for c in ["Repository", "Branch", "Remote"]]
     group = misc.load_cfg(ctx.obj["state"])
     group.recursive_command("push")

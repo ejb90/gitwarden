@@ -1,8 +1,8 @@
 """Python-specific CLI arguments.
 
-1. py-installer: Install python packages in the cloned repository tree.
-2. py-requirements: Generate requirements.txt files for python packages in the cloned repository tree.
-3. py-wheeler: Build wheels for python packages in the cloned repository tree.
+1. py-installer: Install Python packages in the cloned repository tree.
+2. py-requirements: Generate requirements.txt files for Python packages in the cloned repository tree.
+3. py-wheeler: Build wheels for Python packages in the cloned repository tree.
 """
 
 import logging
@@ -21,7 +21,7 @@ from .cli import cli
 @click.option("-p", "--pyproject", is_flag=True, default=False)
 @click.option("-F", "--force", is_flag=True, default=False)
 def py_requirements(ctx: click.Context, fname: pathlib.Path | None, pyproject: bool, force: bool) -> None:
-    """Generate requirements.txt file for python packages in the cloned repository tree.
+    """Generate requirements.txt file for Python packages in the cloned repository tree.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
@@ -70,7 +70,7 @@ def py_requirements(ctx: click.Context, fname: pathlib.Path | None, pyproject: b
 @click.option("-e", "--editable", type=bool, is_flag=True, default=False)
 @click.option("--index", type=str, default=None)
 def py_installer(ctx: click.Context, editable: bool, index: str | None, package_manager: str = "uv pip") -> None:
-    """Install python packages in the cloned repository tree.
+    """Install Python packages in the cloned repository tree.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
@@ -89,17 +89,16 @@ def py_installer(ctx: click.Context, editable: bool, index: str | None, package_
 
 @cli.command()
 @click.pass_context
-def py_wheeler(_ctx: click.Context) -> None:
-    """Build wheels for python packages in the cloned repository tree.
+def py_wheel(ctx: click.Context) -> None:
+    """Build wheels for Python packages in the cloned repository tree.
 
     Arguments:
-        _ctx (click.Context):               Top level CLI flags.
+        ctx (click.Context):                Top level CLI flags.
 
     Returns:
         None
     """
-    # group = misc.load_cfg(ctx.obj["state"])
+    group = misc.load_cfg(ctx.obj["state"])
 
-    # [output.TABLE.add_column(c) for c in ["Name", "Path"]]
-    # group.recursive_command("pyinstall", editable=editable, index=index)
-    raise click.ClickException("Wheel building is not implemented yet.")
+    [output.TABLE.add_column(c) for c in ["Name", "Path"]]
+    group.recursive_command("pywheel")

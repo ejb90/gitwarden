@@ -1,0 +1,23 @@
+include LICENCE.md
+include README.md
+include pyproject.toml
+
+graft gitconductor/_data
+
+prune .github
+prune .pytest_cache
+prune .ruff_cache
+prune .venv
+prune build
+prune dist
+prune docs
+prune ejb90-group
+prune gitconductor/venv
+prune help
+prune htmlcov
+prune tests
+prune venv
+
+global-exclude .DS_Store
+global-exclude *.py[cod]
+global-exclude __pycache__

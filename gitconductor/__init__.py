@@ -1,4 +1,4 @@
-"""Gitlab wrapper."""
+"""GitLab wrapper."""
 
 from . import cli, gitlab, output, visualise
 

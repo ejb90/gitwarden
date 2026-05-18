@@ -31,7 +31,7 @@ def build_tree(group: GitlabGroup, tree: rich.tree.Tree) -> rich.tree.Tree:
     """Iteratively build the  tree.
 
     Args:
-        group (gitlab.GitlabGroup):     Gitlab group instance.
+        group (gitlab.GitlabGroup):     GitLab group instance.
         tree (rich.tree.Tree):          Initial Tree instance.
 
     Returns:
@@ -52,7 +52,7 @@ def build_table(
     """Iteratively build the table.
 
     Args:
-        group (gitlab.GitlabGroup):     Gitlab group instance.
+        group (gitlab.GitlabGroup):     GitLab group instance.
         rows (None, list):              Previous table rows.
         depth (int):                    Depth inside the tree.
         maxdepth (int):                 Maximum recursion depth (0=PWD).
@@ -83,7 +83,7 @@ def build_access(
     """Iteratively build access lists.
 
     Args:
-        group (gitlab.GitlabGroup):     Gitlab group instance.
+        group (gitlab.GitlabGroup):     GitLab group instance.
         rows (None, list):              Previous table rows.
         depth (int):                    Depth inside the tree.
         unique_ids (list):              List of all unique IDs printed
@@ -148,7 +148,7 @@ def tree(group: GitlabGroup) -> None:
     """Make a tree visualisation.
 
     Args:
-        group (gitlab.GitlabGroup):     Gitlab group instance.
+        group (gitlab.GitlabGroup):     GitLab group instance.
 
     Returns:
         None
@@ -163,7 +163,7 @@ def table(group: GitlabGroup, maxdepth: int | None = None) -> None:
     """Make a table visualisation.
 
     Args:
-        group (gitlab.GitlabGroup):     Gitlab group instance.
+        group (gitlab.GitlabGroup):     GitLab group instance.
         maxdepth (int):                 Maximum recursion depth (0=PWD).
 
     Returns:
@@ -179,10 +179,10 @@ def table(group: GitlabGroup, maxdepth: int | None = None) -> None:
 
 
 def access(group: GitlabGroup, explicit: bool = False, maxdepth: int | None = None) -> None:
-    """Make a access visualisation.
+    """Make an access visualisation.
 
     Args:
-        group (gitlab.GitlabGroup):     Gitlab group instance.
+        group (gitlab.GitlabGroup):     GitLab group instance.
         explicit (bool):                Explicitly show all members of all groups/projects?
         maxdepth (int):                 Maximum recursion depth (0=PWD).
 
@@ -199,10 +199,10 @@ def access(group: GitlabGroup, explicit: bool = False, maxdepth: int | None = No
 
 
 def access_matrix(group: GitlabGroup, maxdepth: int | None = None) -> None:
-    """Make a access matrix visualisation.
+    """Make an access matrix visualisation.
 
     Args:
-        group (gitlab.GitlabGroup):     Gitlab group instance.
+        group (gitlab.GitlabGroup):     GitLab group instance.
         maxdepth (int):                 Maximum recursion depth (0=PWD).
 
     Returns:

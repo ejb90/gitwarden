@@ -224,11 +224,18 @@ def test_pyinstaller_subgroup(monkeypatch: pytest.MonkeyPatch) -> None:
         uninstall_packages(package_names)
 
 
-def test_pywheeler_not_implemented() -> None:
-    """Report unimplemented wheel building as a CLI error."""
+@pytest.mark.fresh_repo_path
+def test_pywheel(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Build Python wheels through the recursive GitLab command."""
+    repo_names = ("model-a", "model-b", "model-c", "subgroup-1/model-d", "subgroup-1/model-e")
+    monkeypatch.chdir(Path("models"))
     runner = CliRunner()
-    result = runner.invoke(gitconductor.cli.cli, ["py-wheeler"])
+    result = runner.invoke(gitconductor.cli.cli, ["py-wheel"])
 
-    assert result.exit_code == 1
-    assert "Wheel building is not implemented yet." in result.output
-    assert "Traceback" not in result.output
+    assert result.exit_code == 0
+
+    for repo in repo_names:
+        wheel_path = (
+            Path(repo) / "dist" / f"{Path(repo).name.replace('/', '-').replace('-', '_')}-0.1.0-py3-none-any.whl"
+        )
+        assert wheel_path.is_file()

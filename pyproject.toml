@@ -1,7 +1,7 @@
 [project]
 name = "gitconductor"
-version = "0.4.2"
-description = "Manage nested git repositories in Gitlab seemlessly(ish)"
+version = "0.5.0"
+description = "Manage nested GitLab repositories seamlessly(ish)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -15,13 +15,12 @@ dependencies = [
 authors = [
   { name = "ejb90" }
 ]
-license = { text = "MIT" }
+license = "MIT"
 
 classifiers = [
     "Development Status :: 4 - Beta",
     "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -64,6 +63,15 @@ gitconductor = ["_data/README.md"]
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["gitconductor*"]
+exclude = [
+    "docs*",
+    "ejb90-group*",
+    "help*",
+    "htmlcov*",
+    "tests*",
+    "venv*",
+]
 
 [tool.ruff]
 # Target modern Python
