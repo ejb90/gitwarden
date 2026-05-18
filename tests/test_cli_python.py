@@ -232,16 +232,9 @@ def test_pywheel(monkeypatch: pytest.MonkeyPatch) -> None:
     runner = CliRunner()
     result = runner.invoke(gitconductor.cli.cli, ["py-wheel"])
 
-    print(result.output)
-    print(Path().resolve())
-
     assert result.exit_code == 0
 
     for repo in repo_names:
-        print(Path(repo).is_dir())
-        print([f.name for f in Path(repo).iterdir()])
-        print([f.name for f in (Path(repo) / "dist").iterdir()])
-        print([f.name for f in (Path(repo) / "build").iterdir()])
         wheel_path = (
             Path(repo) / "dist" / f"{Path(repo).name.replace('/', '-').replace('-', '_')}-0.1.0-py3-none-any.whl"
         )
