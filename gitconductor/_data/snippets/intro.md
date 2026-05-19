@@ -1,0 +1,1 @@
+`gitconductor` is a command-line tool and Python library for managing git operations over nested GitLab groups. It traverses group and subgroup hierarchies, runs recursive git commands, and can work with Python packages inside a cloned hierarchy.

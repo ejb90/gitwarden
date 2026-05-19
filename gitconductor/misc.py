@@ -7,6 +7,8 @@ from importlib.resources import files
 
 from gitconductor import gitlab
 
+HELP_INCLUDE_PATTERN = re.compile(r"<!--\s*include:\s*(?P<path>[^>]+?)\s*-->")
+
 
 def load_cfg(cfg: pathlib.Path | None) -> gitlab.GitlabGroup | gitlab.GitlabProject:
     """Load Group/Project instance.
@@ -67,17 +69,53 @@ def find_subgroup(group: gitlab.GitlabGroup | gitlab.GitlabProject) -> gitlab.Gi
 
 
 def readme_header() -> str:
-    """Read README.md for CLI help string.
+    """Read packaged intro snippet for CLI help string.
 
     Returns:
-        str:    README.md header contents.
+        str:    Introductory CLI help contents.
     """
-    chunks = readme()
-    header = [line for line in chunks.get("gitconductor", {}).splitlines() if line.strip()]
-    header = [line for line in header if not line.strip().startswith("[![")]
-    header = [line for line in header if not line.strip().startswith("![")]
-    header = "\n".join(header)
-    return header
+    return data_text("snippets/intro.md")
+
+
+def data_text(path: str) -> str:
+    """Read a packaged data file.
+
+    Args:
+        path (str): Path relative to ``gitconductor/_data``.
+
+    Returns:
+        str: File contents.
+    """
+    resource = files("gitconductor").joinpath("_data")
+    for part in pathlib.PurePosixPath(path).parts:
+        resource = resource.joinpath(part)
+    return resource.read_text(encoding="utf-8")
+
+
+def expand_help_includes(text: str) -> str:
+    """Expand help-file include markers.
+
+    Args:
+        text (str): Markdown text that may contain include markers.
+
+    Returns:
+        str: Markdown text with include markers expanded.
+    """
+
+    def replace(match: re.Match[str]) -> str:
+        include_path = match.group("path").strip()
+        return expand_help_includes(data_text(include_path))
+
+    return HELP_INCLUDE_PATTERN.sub(replace, text)
+
+
+def help_text() -> str:
+    """Read packaged CLI help text.
+
+    Returns:
+        str: Markdown help text.
+    """
+    return expand_help_includes(data_text("help.md"))
 
 
 def readme() -> dict[str, str]:

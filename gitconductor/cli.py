@@ -25,7 +25,7 @@ click.rich_click.MARKDOWN_SYNTAX = "commonmark"
 @click.option(
     "--cfg",
     type=click.Path(path_type=pathlib.Path),
-    default=os.environ.get("GITCONDUCTOR_CONFIG", pathlib.Path().home() / ".config/gitconductor/gitconductor.yaml"),
+    default=os.environ.get("GITCONDUCTOR_CONFIG", pathlib.Path().home() / ".config/gitconductor/gitconductor.toml"),
     required=False,
 )
 @click.option(
@@ -105,10 +105,6 @@ def access(ctx: click.Context, explicit: bool, maxdepth: int | None, matrix: boo
 # =====================================================================================================================
 @cli.command()
 def help() -> None:
-    """Print some generic help from README.md if docs aren't available."""
+    """Print setup help."""
     console = rich.console.Console()
-    console.print(rich.markdown.Markdown(misc.readme_header()))
-    console.print(rich.markdown.Markdown(misc.readme()["Configuration"]))
-
-    info = "\n".join(misc.readme()["Installation"].splitlines()[4:])
-    console.print(rich.markdown.Markdown(info))
+    console.print(rich.markdown.Markdown(misc.help_text()))

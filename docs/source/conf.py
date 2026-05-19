@@ -13,17 +13,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 
 # -- Load information --------------------------------------------------------
-pyproject = Path().resolve().parent.parent / "pyproject.toml"
+pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
 with pyproject.open("rb") as f:
     data = tomllib.load(f)
+project_data = data.get("project", {})
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "gitconductor"
-author = data.get("project", {}).get("name")
+project = project_data.get("name", "gitconductor")
+author = ", ".join(author["name"] for author in project_data.get("authors", []))
 copyright = f"2025, {author}"
-release = data.get("project", {}).get("name", "0.0.0")
+release = project_data.get("version", "0.0.0")
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -53,4 +54,4 @@ intersphinx_mapping = {
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "furo"
-html_static_path = ["_static"]
+html_static_path = []
