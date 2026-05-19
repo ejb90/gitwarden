@@ -5,7 +5,7 @@
 .. ----------
 
 gitconductor.cli module
---------------------
+-----------------------
 
 .. automodule:: gitconductor.cli
    :members:
@@ -13,7 +13,7 @@ gitconductor.cli module
    :undoc-members:
 
 gitconductor.gitlab module
------------------------
+--------------------------
 
 .. automodule:: gitconductor.gitlab
    :members:
@@ -21,7 +21,7 @@ gitconductor.gitlab module
    :undoc-members:
 
 gitconductor.output module
------------------------
+--------------------------
 
 .. automodule:: gitconductor.output
    :members:
@@ -29,7 +29,7 @@ gitconductor.output module
    :undoc-members:
 
 gitconductor.visualise module
---------------------------
+-----------------------------
 
 .. automodule:: gitconductor.visualise
    :members:

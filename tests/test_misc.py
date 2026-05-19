@@ -40,8 +40,8 @@ def test_readme() -> None:
         "Features",
         "Installation",
         "Configuration",
-        "Usage (CLI)",
-        "Usage (Python API)",
+        "Quick Start",
+        "Documentation",
         "Development & Contributing",
         "License",
     ):

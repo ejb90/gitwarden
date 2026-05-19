@@ -1,17 +1,33 @@
-.. gitconductor documentation master file, created by
-   sphinx-quickstart on Mon Dec 22 12:31:45 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 gitconductor
 ============
 
+.. include:: ../../gitconductor/_data/snippets/intro.md
+   :parser: myst_parser.sphinx_
+
+Start here if you are using the command line:
+
+.. include:: ../../gitconductor/_data/snippets/install.md
+   :parser: myst_parser.sphinx_
+
+.. include:: ../../gitconductor/_data/snippets/token_env.md
+   :parser: myst_parser.sphinx_
+
+.. include:: ../../gitconductor/_data/snippets/quick_start.md
+   :parser: myst_parser.sphinx_
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: User Guide
+
+   configuration
+   git_cli
+   visualisation
+   python_cli
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Development
 
    modules
-
-
-.. include:: ../../README.md
-   :parser: myst_parser.sphinx_
+   contributing
+   changelog
