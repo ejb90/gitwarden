@@ -8,13 +8,24 @@ import rich.markdown
 import rich.tree
 import rich_click as click
 
-from gitconductor import misc, settings, visualise
+from gitconductor import misc, output, settings, visualise
 
 click.rich_click.TEXT_MARKUP = "markdown"
 click.rich_click.MARKDOWN_SYNTAX = "commonmark"
 
 
-@click.group(help=misc.readme_header())
+class CursorRestoringGroup(click.RichGroup):
+    """Click group that restores Rich terminal cursor state after each invocation."""
+
+    def main(self, *args: object, **kwargs: object) -> object:
+        """Run the command and restore the cursor before returning."""
+        try:
+            return super().main(*args, **kwargs)
+        finally:
+            output.restore_cursor()
+
+
+@click.group(cls=CursorRestoringGroup, help=misc.readme_header())
 @click.option("--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_GITLAB_URL", None), required=False)
 @click.option(
     "--gitlab-key",
