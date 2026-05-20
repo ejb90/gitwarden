@@ -12,19 +12,26 @@ Clone a GitLab group or project and save its hierarchy state:
 
 .. code-block:: bash
 
-   gitconductor clone ejb90-group
+   gitconductor clone https://gitlab.com/ejb90-group
 
 Clone into a specific directory:
 
 .. code-block:: bash
 
-   gitconductor clone ejb90-group ./work
+   gitconductor clone https://gitlab.com/ejb90-group ./work
 
 Clone projects into a flat directory layout:
 
 .. code-block:: bash
 
-   gitconductor clone --flat ejb90-group
+   gitconductor clone --flat git@gitlab.com:ejb90-group
+
+By default, clone fails before contacting GitLab if the target hierarchy already
+exists. Resume into an existing hierarchy and clone only missing projects:
+
+.. code-block:: bash
+
+   gitconductor clone --resume https://gitlab.com/ejb90-group
 
 Branch
 ------

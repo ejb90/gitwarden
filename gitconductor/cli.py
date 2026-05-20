@@ -26,7 +26,6 @@ class CursorRestoringGroup(click.RichGroup):
 
 
 @click.group(cls=CursorRestoringGroup, help=misc.readme_header())
-@click.option("--gitlab-url", type=str, default=os.environ.get("GITCONDUCTOR_GITLAB_URL", None), required=False)
 @click.option(
     "--gitlab-key",
     type=str,
@@ -46,11 +45,10 @@ class CursorRestoringGroup(click.RichGroup):
     required=False,
 )
 @click.pass_context
-def cli(ctx: click.Context, gitlab_url: str, gitlab_key: str, cfg: pathlib.Path, state: pathlib.Path) -> None:
+def cli(ctx: click.Context, gitlab_key: str, cfg: pathlib.Path, state: pathlib.Path) -> None:
     """Manage nested GitLab groups and projects."""
     ctx.ensure_object(dict)
     cfg = settings.Settings(cfg=cfg)
-    ctx.obj["url"] = gitlab_url if gitlab_url else cfg.gitconductor_gitlab_url
     ctx.obj["key"] = gitlab_key if gitlab_key else cfg.gitconductor_gitlab_api_key
     ctx.obj["cfg"] = cfg
     ctx.obj["state"] = state

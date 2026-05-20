@@ -24,7 +24,7 @@ def test_command_help_is_user_facing() -> None:
     result = runner.invoke(gitconductor.cli.cli, ["clone", "--help"])
 
     assert result.exit_code == 0
-    assert "Clone a GitLab group or project and save its hierarchy state." in result.output
+    assert "Clone a GitLab group or project from its full HTTPS or SSH URL." in result.output
     assert "Arguments:" not in result.output
     assert "Returns:" not in result.output
 

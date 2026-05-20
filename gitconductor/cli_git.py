@@ -9,7 +9,7 @@ from gitconductor import gitlab, misc, output
 from .cli import cli
 
 
-@cli.command(help="Clone a GitLab group or project and save its hierarchy state.")
+@cli.command(help="Clone a GitLab group or project from its full HTTPS or SSH URL.")
 @click.argument("name")
 @click.argument(
     "directory",
@@ -18,31 +18,41 @@ from .cli import cli
     required=False,
 )
 @click.option("--flat", type=bool, is_flag=True, default=False)
+@click.option(
+    "--resume",
+    type=bool,
+    is_flag=True,
+    default=False,
+    help="Reuse existing matching repositories and clone only missing projects.",
+)
 @click.pass_context
-def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool) -> None:
+def clone(ctx: click.Context, name: str, directory: pathlib.Path, flat: bool, resume: bool) -> None:
     """Clone GitLab group, subgroup, or project repositories recursively.
 
     Arguments:
         ctx (click.Context):                Top level CLI flags.
-        name (str):                         Name of the GitLab group to recursively clone.
+        name (str):                         Full HTTPS or SSH URL of the GitLab group to recursively clone.
         directory (pathlib.Path, None):     Directory in which to clone repositories.
         flat (bool):                        Flat directory structure?
+        resume (bool):                      Resume into existing matching repositories?
 
     Returns:
         None
     """
     [output.TABLE.add_column(c) for c in ["Name", "Tree", "Branch", "Path", "Remote"]]
+    target = gitlab.clone_target_path(name, directory, flat=flat)
+    if target.exists() and not resume:
+        raise click.ClickException(f'Clone target "{target}" already exists. Use --resume to reuse it.')
 
     group = gitlab.GitlabGroup(
-        gitlab_url=ctx.obj["url"],
         gitlab_key=ctx.obj["key"],
-        fullname=name,
-        name=name,
+        source=name,
+        name="",
         flat=flat,
         root=directory,
         cfg=ctx.obj["cfg"],
     )
-    group.recursive_command("clone")
+    group.recursive_command("clone", resume=resume)
 
 
 @cli.command()

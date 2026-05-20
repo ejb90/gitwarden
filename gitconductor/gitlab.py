@@ -5,9 +5,11 @@ from __future__ import annotations
 import os
 import pathlib
 import pickle
+import re
 import shlex
 import subprocess
 import typing
+import urllib.parse
 
 import git
 import gitlab
@@ -19,6 +21,59 @@ from pydantic import BaseModel, Field
 from gitconductor import output, settings
 
 GROUP_FNAME = pathlib.Path(".gitconductor.pkl")
+SCP_URL_PATTERN = re.compile(r"^(?:(?P<user>[^@/:]+)@)?(?P<host>[^:/]+):(?P<path>.+)$")
+
+
+def parse_gitlab_remote(remote: str) -> tuple[str, str]:
+    """Parse a GitLab group or project URL into API URL and full path.
+
+    Args:
+        remote (str): HTTPS, HTTP, SSH, or scp-style GitLab URL.
+
+    Returns:
+        tuple[str, str]: GitLab API base URL and group or project full path.
+    """
+    parsed = urllib.parse.urlparse(remote)
+    if parsed.scheme in {"http", "https"}:
+        api_url = f"{parsed.scheme}://{parsed.netloc}"
+        full_path = parsed.path
+    elif parsed.scheme == "ssh":
+        if not parsed.hostname:
+            raise ValueError(f'Cannot determine GitLab host from "{remote}".')
+        api_url = f"https://{parsed.hostname}"
+        full_path = parsed.path
+    else:
+        match = SCP_URL_PATTERN.match(remote)
+        if not match:
+            raise ValueError(f'Clone target must be a full GitLab URL, got "{remote}".')
+        api_url = f"https://{match.group('host')}"
+        full_path = match.group("path")
+
+    full_path = full_path.strip("/")
+    if full_path.endswith(".git"):
+        full_path = full_path.removesuffix(".git")
+
+    if not full_path:
+        raise ValueError(f'Cannot determine GitLab group or project path from "{remote}".')
+    return api_url, full_path
+
+
+def clone_target_path(remote: str, directory: pathlib.Path, flat: bool) -> pathlib.Path:
+    """Determine the path a clone command will manage.
+
+    Args:
+        remote (str): HTTPS, HTTP, SSH, or scp-style GitLab URL.
+        directory (pathlib.Path): Directory passed to ``gitconductor clone``.
+        flat (bool): Whether clone output will use a flat layout.
+
+    Returns:
+        pathlib.Path: Path to check before cloning.
+    """
+    _, full_path = parse_gitlab_remote(remote)
+    root = directory.resolve()
+    if flat:
+        return root / GROUP_FNAME
+    return root / pathlib.PurePosixPath(full_path).parts[0]
 
 
 class GitlabInstance(BaseModel):
@@ -28,7 +83,6 @@ class GitlabInstance(BaseModel):
         ...
     """
 
-    gitlab_url: str = "https://gitlab.com"
     gitlab_key: str
     server: typing.Any | None = None
     root: pathlib.Path = pathlib.Path().resolve()
@@ -57,8 +111,8 @@ class GitlabGroup(GitlabInstance):
 
     name: str
     gitlab_key: str
-    gitlab_url: str = "https://gitlab.com"
     fullname: str = ""
+    source: str | None = None
     group: typing.Any | None = None
     projects: list[str] = Field(default_factory=list)
     subgroups: list[str] = Field(default_factory=list)
@@ -68,7 +122,13 @@ class GitlabGroup(GitlabInstance):
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
         kwargs = self.cfg.gitlab if self.cfg else {}
-        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key, **kwargs)
+        if self.server is None:
+            if not self.source:
+                raise ValueError("A GitLab server or clone source URL is required.")
+            api_url, self.fullname = parse_gitlab_remote(self.source)
+            self.server = gitlab.Gitlab(api_url, private_token=self.gitlab_key, **kwargs)
+        if not self.name:
+            self.name = pathlib.PurePosixPath(self.fullname).name
         self.root = self.root.resolve()
 
         self.group = self.server.groups.get(self.fullname)
@@ -111,8 +171,8 @@ class GitlabGroup(GitlabInstance):
         # Loop through projects in the group, set up GitlabProject instance for the project.
         for project in sorted(self.group.projects.list(all=True), key=lambda x: x.path):
             proj = GitlabProject(
-                gitlab_url=self.gitlab_url,
                 gitlab_key=self.gitlab_key,
+                server=self.server,
                 project=project,
                 root=self.root,
                 flat=self.flat,
@@ -126,8 +186,8 @@ class GitlabGroup(GitlabInstance):
         # Loop through subgroups in the group, set up GitlabGroup instance for each subgroup.
         for group in self.group.subgroups.list(all=True):
             grp = GitlabGroup(
-                gitlab_url=self.gitlab_url,
                 gitlab_key=self.gitlab_key,
+                server=self.server,
                 fullname=group.full_path,
                 name=pathlib.Path(group.full_path).name,
                 root=self.root,
@@ -222,7 +282,6 @@ class GitlabProject(GitlabInstance):
 
     project: typing.Any
     gitlab_key: str
-    gitlab_url: str = "https://gitlab.com"
     name: str = ""
     git: typing.Any | None = None
     rows: list = Field(default_factory=list)
@@ -231,8 +290,8 @@ class GitlabProject(GitlabInstance):
 
     def model_post_init(self, __context: str | None = None) -> None:
         """Post-init function calls."""
-        kwargs = self.cfg.gitlab if self.cfg else {}
-        self.server = gitlab.Gitlab(self.gitlab_url, private_token=self.gitlab_key, **kwargs)
+        if self.server is None:
+            raise ValueError("A GitLab server is required.")
         if self.path is None:
             self.path = pathlib.Path() / self.project.path
 
@@ -307,13 +366,19 @@ class GitlabProject(GitlabInstance):
         else:
             raise Exception(f'Command "{command}" not recognised.')
 
-    def clone(self) -> None:
+    def clone(self, resume: bool = False) -> None:
         """Clone a repository.
+
+        Args:
+            resume (bool): Reuse an existing matching repository when present.
 
         Returns:
             None
         """
-        self.git = git.Repo.clone_from(self.project.ssh_url_to_repo, self.path, progress=output.CloneProgress())
+        if resume and self.path.exists():
+            self.git = self.validate_existing_clone()
+        else:
+            self.git = git.Repo.clone_from(self.project.ssh_url_to_repo, self.path, progress=output.CloneProgress())
         self.name = pathlib.Path(self.git.working_tree_dir).name
 
         self.rows.append(
@@ -326,6 +391,31 @@ class GitlabProject(GitlabInstance):
                 self.git.remote(name="origin").url,
             ]
         )
+
+    def validate_existing_clone(self) -> git.Repo:
+        """Validate an existing clone can be reused.
+
+        Returns:
+            git.Repo: Existing repository.
+        """
+        try:
+            repo = git.Repo(self.path)
+        except git.InvalidGitRepositoryError as exc:
+            message = f'Cannot resume clone because "{self.path}" exists but is not a git repository.'
+            raise FileExistsError(message) from exc
+
+        origin = repo.remote(name="origin").url
+        expected_urls = {self.project.ssh_url_to_repo}
+        http_url = getattr(self.project, "http_url_to_repo", None)
+        if http_url:
+            expected_urls.add(http_url)
+
+        if origin not in expected_urls:
+            expected = '" or "'.join(sorted(expected_urls))
+            raise ValueError(
+                f'Cannot resume clone at "{self.path}" because origin is "{origin}", expected "{expected}".'
+            )
+        return repo
 
     def branch(self, name: str | None = None) -> None:
         """Make branch in a repository.

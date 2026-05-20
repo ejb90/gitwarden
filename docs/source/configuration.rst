@@ -31,7 +31,6 @@ Example:
 
 .. code-block:: toml
 
-   gitconductor_gitlab_url = "https://gitlab.com"
    gitconductor_gitlab_api_key = "glpat-..."
 
 Environment Variables
@@ -42,10 +41,6 @@ Environment Variables
 
 ``GITCONDUCTOR_GITLAB_API_KEY``
    GitLab Personal Access Token.
-
-``GITCONDUCTOR_GITLAB_URL``
-   GitLab instance URL. Defaults to ``https://gitlab.com`` when neither the
-   environment nor the settings file provides a URL.
 
 Saved Hierarchy State
 ---------------------
