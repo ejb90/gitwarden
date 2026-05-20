@@ -34,11 +34,7 @@ Gitconductor needs a GitLab Personal Access Token. The quickest setup is:
 export GITCONDUCTOR_GITLAB_API_KEY=<my-private-key>
 ```
 
-For self-hosted GitLab, set the GitLab URL too:
-
-```bash
-export GITCONDUCTOR_GITLAB_URL=https://gitlab.example.com
-```
+Pass the full GitLab group or project URL to `gitconductor clone`. Gitconductor derives the GitLab instance from that URL.
 
 Gitconductor can also store settings in a TOML file. By default, this is:
 
@@ -51,13 +47,14 @@ The location can be changed via `GITCONDUCTOR_CONFIG` or the top-level `--cfg` C
 # Quick Start
 
 ```bash
-gitconductor clone my-group
+gitconductor clone https://gitlab.com/my-group
 cd my-group
 gitconductor status
 gitconductor viz tree
 ```
 
 Run commands from a subgroup or project directory to narrow the recursive scope.
+Use `gitconductor clone --resume <url>` to reuse an existing matching hierarchy.
 
 # Documentation
 

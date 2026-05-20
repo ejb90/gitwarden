@@ -11,7 +11,6 @@ class Settings(BaseModel):
     """Settings class."""
 
     cfg: pathlib.Path | None = None
-    gitconductor_gitlab_url: str = "https://gitlab.com"
     gitconductor_gitlab_api_key: str = ""
     gitconductor_config: str | None = None
     gitlab: dict = Field(default_factory=dict)
@@ -28,4 +27,5 @@ class Settings(BaseModel):
             with open(self.cfg, "rb") as fobj:
                 raw_data = tomllib.load(fobj)
                 for key, val in raw_data.items():
-                    setattr(self, key, val)
+                    if key in self.__class__.model_fields:
+                        setattr(self, key, val)

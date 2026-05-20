@@ -8,12 +8,14 @@ from click.testing import CliRunner
 
 import gitconductor.cli
 
+REMOTE = "https://gitlab.com/ejb90-group"
+
 
 @pytest.mark.tmp_path
 def test_clone_simple() -> None:
     """Basic clone."""
     runner = CliRunner()
-    result = runner.invoke(gitconductor.cli.cli, ["clone", "ejb90-group"])
+    result = runner.invoke(gitconductor.cli.cli, ["clone", REMOTE])
 
     dname = Path("ejb90-group")
     fname = dname / ".gitconductor.pkl"
@@ -34,10 +36,33 @@ def test_clone_simple() -> None:
 
 
 @pytest.mark.tmp_path
+def test_clone_existing_target_fails_early() -> None:
+    """Clone should fail before GitLab traversal when the target exists."""
+    Path("ejb90-group").mkdir()
+    runner = CliRunner()
+    result = runner.invoke(gitconductor.cli.cli, ["clone", REMOTE])
+
+    assert result.exit_code == 1
+    assert "Clone target" in result.output
+    assert "--resume" in result.output
+
+
+@pytest.mark.tmp_path
+def test_clone_resume() -> None:
+    """Resume should reuse an existing matching hierarchy."""
+    runner = CliRunner()
+    first = runner.invoke(gitconductor.cli.cli, ["clone", REMOTE])
+    second = runner.invoke(gitconductor.cli.cli, ["clone", "--resume", REMOTE])
+
+    assert first.exit_code == 0
+    assert second.exit_code == 0
+
+
+@pytest.mark.tmp_path
 def test_clone_flat() -> None:
     """Basic flat clone."""
     runner = CliRunner()
-    result = runner.invoke(gitconductor.cli.cli, ["clone", "--flat", "ejb90-group"])
+    result = runner.invoke(gitconductor.cli.cli, ["clone", "--flat", REMOTE])
 
     fname = Path(".gitconductor.pkl")
 
@@ -59,7 +84,7 @@ def test_clone_flat() -> None:
 def test_clone_limited_access() -> None:
     """Clone with access to one subproject, but not the other."""
     runner = CliRunner()
-    runner.invoke(gitconductor.cli.cli, ["clone", "mobot-group"])
+    runner.invoke(gitconductor.cli.cli, ["clone", "https://gitlab.com/mobot-group"])
 
     dname = Path("mobot-group")
     assert (dname / "access").is_dir()

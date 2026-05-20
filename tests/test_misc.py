@@ -53,6 +53,40 @@ def test_settings() -> None:
     settings.Settings()
 
 
+@pytest.mark.parametrize(
+    ("remote", "api_url", "full_path"),
+    (
+        ("https://gitlab.com/ejb90-group", "https://gitlab.com", "ejb90-group"),
+        ("https://gitlab.example.com/group/subgroup.git", "https://gitlab.example.com", "group/subgroup"),
+        ("ssh://git@gitlab.example.com/group/subgroup.git", "https://gitlab.example.com", "group/subgroup"),
+        ("git@gitlab.example.com:group/subgroup.git", "https://gitlab.example.com", "group/subgroup"),
+    ),
+)
+def test_parse_gitlab_remote(remote: str, api_url: str, full_path: str) -> None:
+    """Test parsing GitLab clone URLs."""
+    assert gitlab.parse_gitlab_remote(remote) == (api_url, full_path)
+
+
+def test_parse_gitlab_remote_rejects_bare_group() -> None:
+    """Test clone targets must be full URLs."""
+    with pytest.raises(ValueError, match="Clone target must be a full GitLab URL"):
+        gitlab.parse_gitlab_remote("ejb90-group")
+
+
+def test_clone_target_path() -> None:
+    """Test clone preflight target path."""
+    assert gitlab.clone_target_path("https://gitlab.com/ejb90-group/models", Path("."), flat=False) == (
+        Path.cwd() / "ejb90-group"
+    )
+
+
+def test_clone_target_path_flat() -> None:
+    """Test flat clone preflight target path."""
+    assert gitlab.clone_target_path("https://gitlab.com/ejb90-group/models", Path("."), flat=True) == (
+        Path.cwd() / gitlab.GROUP_FNAME
+    )
+
+
 def test_settings_file_full() -> None:
     """Test settings."""
     cfg = settings.Settings(cfg=Path("gitconductor.toml"))

@@ -6,11 +6,7 @@ Then export the token:
 
 <!-- include: snippets/token_env.md -->
 
-For self-hosted GitLab, set the GitLab URL too:
-
-```bash
-export GITCONDUCTOR_GITLAB_URL=https://gitlab.example.com
-```
+Pass the full GitLab group or project URL to `gitconductor clone`. Gitconductor derives the GitLab instance from that URL.
 
 Gitconductor can also store settings in a TOML file. By default, this is:
 

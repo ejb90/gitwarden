@@ -10,13 +10,14 @@ from _pytest.fixtures import FixtureRequest
 from gitconductor.gitlab import GitlabGroup
 
 NAME = "ejb90-group"
+REMOTE = f"https://gitlab.com/{NAME}"
 
 
 @pytest.fixture(scope="session")
 def group(tmp_path_factory: pytest.TempPathFactory) -> GitlabGroup:
     """GitlabGroup object."""
     tmp = tmp_path_factory.mktemp("repo")
-    return GitlabGroup(gitlab_key=os.environ.get("GITCONDUCTOR_GITLAB_API_KEY", ""), name=NAME, fullname=NAME, root=tmp)
+    return GitlabGroup(gitlab_key=os.environ.get("GITCONDUCTOR_GITLAB_API_KEY", ""), name="", source=REMOTE, root=tmp)
 
 
 @pytest.fixture(scope="session")

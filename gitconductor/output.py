@@ -42,6 +42,11 @@ LIVE = rich.live.Live(console=CONSOLE, refresh_per_second=10)
 LIVE.start()
 
 
+def restore_cursor() -> None:
+    """Ensure the terminal cursor is visible."""
+    CONSOLE.show_cursor(True)
+
+
 class CloneProgress(git.RemoteProgress):
     """Override git.RemoteProgress to update progress bars."""
 

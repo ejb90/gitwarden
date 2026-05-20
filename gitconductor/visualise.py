@@ -2,6 +2,7 @@
 
 import pathlib
 
+import gitlab
 import rich.box
 import rich.console
 import rich.table
@@ -25,6 +26,48 @@ CODE_TO_COLOUR = {
     40: "green",
     50: "blue",
 }
+ACCESS_WARNING_LEVEL = "[yellow]Unavailable[/]"
+ACCESS_WARNING_USER = "[yellow]Members hidden[/]"
+
+
+def membership_warning(group: GitlabGroup | GitlabProject, error: Exception) -> list[str]:
+    """Build a warning row for hidden membership.
+
+    Args:
+        group (GitlabGroup | GitlabProject): GitLab group or project.
+        error (Exception): Error raised while listing members.
+
+    Returns:
+        list[str]: Warning row.
+    """
+    message = str(error).strip() or "your token cannot list members here"
+    return [
+        str(group.path),
+        ACCESS_WARNING_USER,
+        ACCESS_WARNING_LEVEL,
+        "",
+        message,
+        group.visibility,
+    ]
+
+
+def visible_members(group: GitlabGroup | GitlabProject) -> tuple[list, list[str] | None]:
+    """Safely list visible members.
+
+    Args:
+        group (GitlabGroup | GitlabProject): GitLab group or project.
+
+    Returns:
+        tuple[list, list[str] | None]: Members plus a warning row when access is hidden.
+    """
+    try:
+        return group.members, None
+    except (
+        gitlab.exceptions.GitlabAuthenticationError,
+        gitlab.exceptions.GitlabGetError,
+        gitlab.exceptions.GitlabListError,
+    ) as exc:
+        return [], membership_warning(group, exc)
 
 
 def build_tree(group: GitlabGroup, tree: rich.tree.Tree) -> rich.tree.Tree:
@@ -100,7 +143,11 @@ def build_access(
     if unique_ids is None:
         unique_ids = []
 
-    members = group.members
+    members, warning = visible_members(group)
+    if warning:
+        warning[0] = str(group.path.relative_to(root.parent))
+        rows.append(warning)
+
     if members:
         members = [member for member in members if member.id not in unique_ids or explicit]
         for i, member in enumerate(members):
@@ -210,8 +257,10 @@ def access_matrix(group: GitlabGroup, maxdepth: int | None = None) -> None:
         None
     """
     rows = build_access(group, explicit=True, maxdepth=maxdepth, root=group.path, colour_only=True)
-    entries = {r[0] for r in rows if r[0]}
-    users = {r[1] for r in rows if r[1]}
+    warnings = [r for r in rows if r[1] == ACCESS_WARNING_USER]
+    member_rows = [r for r in rows if r[1] != ACCESS_WARNING_USER]
+    entries = {r[0] for r in member_rows if r[0]}
+    users = {r[1] for r in member_rows if r[1]}
 
     # Main table
     table = rich.table.Table(show_lines=True, box=rich.box.SQUARE)
@@ -219,12 +268,12 @@ def access_matrix(group: GitlabGroup, maxdepth: int | None = None) -> None:
     [table.add_column(c) for c in sorted(users)]
 
     for entry in sorted(entries):
-        visibility = next(r for r in rows if r[0] == entry)[-1]
+        visibility = next(r for r in member_rows if r[0] == entry)[-1]
         row = [
             entry,
         ]
         for user in sorted(users):
-            access = next((r[2] for r in rows if r[0] == entry and r[1] == user), None)
+            access = next((r[2] for r in member_rows if r[0] == entry and r[1] == user), None)
             if access is None:
                 access = "[red]" if visibility == "public" else "[white]"
             block = f"[on {access[1:-1]}]{' ' * len(user)}"
@@ -243,3 +292,10 @@ def access_matrix(group: GitlabGroup, maxdepth: int | None = None) -> None:
         table.add_row(f"{access:<10} {block}")
 
     console.print(table, crop=True)
+
+    if warnings:
+        table = rich.table.Table()
+        [table.add_column(c) for c in ["Group/Project", "Warning", "Detail"]]
+        for warning in warnings:
+            table.add_row(warning[0], warning[1], warning[4])
+        console.print(table, crop=True)
